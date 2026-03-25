@@ -1,0 +1,59 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: voluntarios_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: voluntarios
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: voluntarios_api
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/voluntarios
+      JWT_SECRET: voluntarios-super-secret-jwt-2024
+      FRONTEND_URL: http://localhost:3000
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        BACKEND_URL: http://voluntarios_api:3001
+        NEXT_PUBLIC_API_URL: http://voluntarios_api:3001/api/v1
+    container_name: voluntarios_web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # Usado pelo Next.js proxy server-side (rewrite) para alcançar o backend
+      BACKEND_URL: http://voluntarios_api:3001
+      # Mantido para compatibilidade com SSR direto
+      NEXT_PUBLIC_API_URL: http://voluntarios_api:3001/api/v1
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
