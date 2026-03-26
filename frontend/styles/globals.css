@@ -1,74 +1,304 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-inter: 'Plus Jakarta Sans', sans-serif;
-  --font-outfit: 'Outfit', sans-serif;
+  --font-sans: 'Outfit', system-ui, sans-serif;
+  --font-display: 'Space Grotesk', 'Outfit', sans-serif;
+  --bg: #030712;
+  --bg-alt: #050f24;
+  --bg-panel: rgba(15, 23, 42, 0.75);
+  --border: rgba(148, 163, 184, 0.2);
+  --text-primary: #f8fafc;
+  --text-muted: #bfc9f7;
+  --pink: #ec4899;
+  --pink-soft: #f9a8d4;
+  --blue: #1d4ed8;
+  --blue-light: #67e8f9;
+  --blue-deep: #0e1a3b;
+  --shadow-glow: 0 40px 90px rgba(3, 7, 18, 0.7);
   --sidebar-width: 260px;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
-  font-family: var(--font-inter);
-  background: #f8fafc;
-  color: #0f172a;
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, rgba(236, 72, 153, 0.25), transparent 40%),
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.25), transparent 45%),
+    var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
-@layer components {
-  .card {
-    @apply bg-white rounded-2xl border border-slate-100 shadow-sm;
-  }
-  .card-hover {
-    @apply card transition-all duration-200 hover:shadow-md hover:-translate-y-0.5;
-  }
-  .btn-primary {
-    @apply inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 text-white font-semibold rounded-xl
-           hover:bg-brand-700 active:bg-brand-800 transition-all duration-150 text-sm shadow-sm;
-  }
-  .btn-secondary {
-    @apply inline-flex items-center gap-2 px-4 py-2.5 bg-white text-slate-700 font-semibold rounded-xl
-           border border-slate-200 hover:bg-slate-50 transition-all duration-150 text-sm;
-  }
-  .btn-danger {
-    @apply inline-flex items-center gap-2 px-4 py-2.5 bg-red-600 text-white font-semibold rounded-xl
-           hover:bg-red-700 transition-all duration-150 text-sm;
-  }
-  .input {
-    @apply w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900
-           placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500
-           transition-all duration-150;
-  }
-  .label {
-    @apply block text-sm font-medium text-slate-700 mb-1.5;
-  }
-  .badge-pill {
-    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold;
-  }
-  .stat-card {
-    @apply card p-6 flex flex-col gap-3;
-  }
-  .page-title {
-    @apply text-2xl font-bold text-slate-900 font-display;
-  }
-  .section-title {
-    @apply text-lg font-semibold text-slate-900 font-display;
-  }
+.main-shell {
+  display: flex;
+  min-height: 100vh;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.sidebar-shell {
+  width: var(--sidebar-width);
+  background: linear-gradient(180deg, rgba(29, 78, 216, 0.85), rgba(7, 17, 65, 0.9));
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
 
-/* Animations */
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-.animate-fadeIn { animation: fadeIn 0.25s ease forwards; }
+.header-shell {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  width: 100%;
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(3, 7, 18, 0.85);
+  backdrop-filter: blur(18px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-@keyframes slideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
-.animate-slideIn { animation: slideIn 0.2s ease forwards; }
+.content-shell {
+  flex: 1;
+  padding: 2.5rem;
+  background: linear-gradient(180deg, rgba(7, 17, 46, 0.95), rgba(3, 7, 18, 0.95));
+}
+
+.card {
+  @apply rounded-3xl border p-6 bg-[rgba(255,255,255,0.04)];
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-glow);
+  background: linear-gradient(180deg, rgba(29, 78, 216, 0.12), rgba(3, 7, 18, 0.92));
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-2 text-sm font-semibold uppercase tracking-[0.2em] transition;
+  background: linear-gradient(135deg, var(--pink), var(--blue-light));
+  color: var(--text-primary);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.35);
+}
+
+.btn-outline {
+  @apply inline-flex items-center gap-2 rounded-2xl px-5 py-2 text-sm font-semibold uppercase tracking-[0.2em] border border-white/30;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.btn-secondary {
+  @apply inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em];
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.btn-secondary:hover {
+  border-color: rgba(236, 72, 153, 0.6);
+  background: rgba(236, 72, 153, 0.1);
+  color: #fff;
+}
+
+.pill {
+  @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] tracking-[0.4em] uppercase;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.badge-pill {
+  @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(18px);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: var(--shadow-glow);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.gradient-accent {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.8), rgba(37, 99, 235, 0.65));
+}
+
+.hero-card {
+  background: linear-gradient(160deg, rgba(37, 99, 235, 0.25), rgba(236, 72, 153, 0.2));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 25px 60px rgba(3, 7, 18, 0.7);
+}
+
+.card-hover {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.7);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card-hover:hover {
+  border-color: rgba(236, 72, 153, 0.5);
+  transform: translateY(-5px);
+  box-shadow: 0 30px 45px rgba(15, 23, 42, 0.45);
+}
+
+.stat-card {
+  @apply rounded-3xl border p-5;
+  border-color: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(150deg, rgba(29, 78, 216, 0.25), rgba(236, 72, 153, 0.15));
+  box-shadow: var(--shadow-glow);
+  color: var(--text-primary);
+}
+
+.stat-card p,
+.stat-card span {
+  color: var(--text-primary);
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.sidebar-link.active {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.8), rgba(37, 99, 235, 0.8));
+  color: #fff;
+}
+
+.sidebar-link svg {
+  color: inherit;
+}
+
+.portal-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.portal-link:hover {
+  border-color: rgba(236, 72, 153, 0.6);
+  color: #fff;
+}
+
+.logo-mark {
+  background: linear-gradient(135deg, var(--pink), var(--blue));
+  box-shadow: 0 12px 30px rgba(29, 78, 216, 0.35);
+}
+
+.portal-shell {
+  min-height: 100vh;
+  background: radial-gradient(circle at top, rgba(236, 72, 153, 0.25), transparent 45%),
+    radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.35), transparent 40%),
+    var(--blue-deep);
+  color: var(--text-primary);
+}
+
+.portal-shell .bg-white {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 20px 45px rgba(2, 6, 23, 0.55);
+}
+
+.portal-shell .border-slate-100 {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.portal-shell .text-slate-900,
+.portal-shell .text-slate-800 {
+  color: var(--text-primary) !important;
+}
+
+.portal-shell .text-slate-500,
+.portal-shell .text-slate-400 {
+  color: var(--text-muted) !important;
+}
+
+.portal-shell .text-emerald-300 {
+  color: var(--blue-light) !important;
+}
+
+.portal-content {
+  min-height: 100vh;
+}
+
+.portal-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(3, 7, 18, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 40px rgba(3, 7, 18, 0.55);
+}
+
+.input {
+  @apply w-full px-3.5 py-2.5 rounded-xl text-sm font-medium;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input:focus {
+  border-color: rgba(37, 99, 235, 0.8);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+  outline: none;
+}
+
+.page-title {
+  font-size: clamp(1.75rem, 2vw, 2.3rem);
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--text-primary);
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-family: var(--font-display);
+  color: #fff;
+}
+
+.label {
+  @apply block text-sm font-medium mb-1.5;
+  color: var(--text-muted);
+}
+
+.text-accent {
+  color: var(--pink);
+}
+
+.text-accent-light {
+  color: var(--blue-light);
+}
+*** End Patch

@@ -80,7 +80,7 @@ export default function PortalHome({ params }: PortalProps) {
   )
 
   return (
-    <div className="min-h-screen bg-white text-slate-800">
+    <div className="portal-content text-white">
 
       {/* ── NAV ── */}
       <PortalNav slug={slug} orgName={org?.name} />

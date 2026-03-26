@@ -4,10 +4,10 @@ import AuthGuard from './AuthGuard'
 export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <AuthGuard>
-      <div className="flex min-h-screen">
+      <div className="main-shell">
         <Sidebar />
-        <main className="flex-1 ml-[260px] min-h-screen">
-          <div className="p-8 animate-fadeIn">
+        <main className="flex-1 ml-[260px] content-shell">
+          <div className="p-8 animate-fadeIn space-y-6">
             {children}
           </div>
         </main>

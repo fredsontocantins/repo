@@ -12,7 +12,7 @@ interface StatCardProps {
   subtitle?: string
 }
 
-export default function StatCard({ title, value, icon: Icon, iconColor = 'text-brand-600', iconBg = 'bg-brand-50', trend, trendLabel, subtitle }: StatCardProps) {
+export default function StatCard({ title, value, icon: Icon, iconColor = 'text-brand-500', iconBg = 'bg-white/10', trend, trendLabel, subtitle }: StatCardProps) {
   return (
     <div className="stat-card">
       <div className="flex items-start justify-between">
@@ -20,8 +20,8 @@ export default function StatCard({ title, value, icon: Icon, iconColor = 'text-b
           <Icon size={20} className={iconColor} />
         </div>
         {trend !== undefined && (
-          <span className={clsx('flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg',
-            trend >= 0 ? 'text-green-700 bg-green-50' : 'text-red-600 bg-red-50'
+          <span className={clsx('flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg border',
+            trend >= 0 ? 'text-blue-200 bg-blue-500/20 border-blue-500/40' : 'text-pink-100 bg-pink-400/20 border-pink-400/30'
           )}>
             {trend >= 0 ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
             {Math.abs(trend)}%
@@ -29,10 +29,10 @@ export default function StatCard({ title, value, icon: Icon, iconColor = 'text-b
         )}
       </div>
       <div>
-        <p className="text-3xl font-bold text-slate-900 font-display">{value}</p>
-        <p className="text-sm font-medium text-slate-500 mt-0.5">{title}</p>
-        {subtitle && <p className="text-xs text-slate-400 mt-1">{subtitle}</p>}
-        {trendLabel && <p className="text-xs text-slate-400 mt-1">{trendLabel}</p>}
+        <p className="text-3xl font-bold text-white font-display">{value}</p>
+        <p className="text-sm font-medium text-[rgba(191,201,247,0.7)] mt-0.5">{title}</p>
+        {subtitle && <p className="text-xs text-[rgba(191,201,247,0.6)] mt-1">{subtitle}</p>}
+        {trendLabel && <p className="text-xs text-[rgba(191,201,247,0.6)] mt-1">{trendLabel}</p>}
       </div>
     </div>
   )

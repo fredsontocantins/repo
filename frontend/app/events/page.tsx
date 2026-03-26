@@ -1,6 +1,7 @@
 'use client'
-import { useEffect, useState, useCallback } from 'react'
-import { Calendar, Plus, MapPin, Users, Clock, UserPlus, Trash2 } from 'lucide-react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
+import Link from 'next/link'
+import { Calendar, Plus, MapPin, Users, Clock, UserPlus, Trash2, Sparkles, ArrowRight } from 'lucide-react'
 import { api } from '@/lib/api'
 import StatusBadge from '@/components/ui/StatusBadge'
 import Modal from '@/components/ui/Modal'
@@ -125,71 +126,100 @@ export default function EventsPage() {
 
   const eventCandidateVolunteers = eventVolunteerOptions.filter(vol => !eventAssignedVolunteers.some(av => av.volunteer?.id === vol.id))
 
+  const counts = useMemo(() => ({
+    total: data?.total ?? 0,
+    scheduled: data?.data?.filter((ev: any) => ev.status === 'SCHEDULED').length ?? 0,
+    ongoing: data?.data?.filter((ev: any) => ev.status === 'ONGOING').length ?? 0,
+    completed: data?.data?.filter((ev: any) => ev.status === 'COMPLETED').length ?? 0,
+    cancelled: data?.data?.filter((ev: any) => ev.status === 'CANCELLED').length ?? 0,
+  }), [data])
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-title">Eventos</h1>
-          <p className="text-slate-500 text-sm mt-1">{data?.total ?? '—'} eventos cadastrados</p>
+      <div className="card hero-card p-8 relative overflow-hidden">
+        <div className="absolute inset-0 gradient-accent opacity-80" />
+        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-muted">Eventos</p>
+            <h1 className="text-3xl font-display font-semibold">Agenda em movimento</h1>
+            <p className="text-sm text-muted mt-1">{data?.total ?? '—'} eventos gerenciados com CTA direto para voluntários e campanhas.</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button className="btn-primary" onClick={() => setShowModal(true)}>
+              <Plus size={16} /> Novo Evento
+            </button>
+            <button className="btn-outline">
+              <Sparkles size={16} /> Insights
+            </button>
+          </div>
         </div>
-        <button className="btn-primary" onClick={() => setShowModal(true)}>
-          <Plus size={16} /> Novo Evento
-        </button>
       </div>
 
-      <div className="card p-4 flex gap-3">
-        <select className="input w-auto min-w-[180px]" value={status} onChange={e => setStatus(e.target.value)}>
-          <option value="">Todos os status</option>
-          {['SCHEDULED', 'ONGOING', 'COMPLETED', 'CANCELLED'].map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {['SCHEDULED', 'ONGOING', 'COMPLETED', 'CANCELLED'].map(statusKey => (
+          <button
+            key={statusKey}
+            className={`card p-4 text-left transition border ${status === statusKey ? 'border-pink-400 bg-[rgba(255,111,181,0.1)]' : 'border-transparent hover:border-white/30'}`}
+            onClick={() => setStatus(status === statusKey ? '' : statusKey)}
+          >
+            <p className="text-[10px] uppercase tracking-[0.4em] text-muted">{statusKey === 'SCHEDULED' ? 'Agendados' : statusKey === 'ONGOING' ? 'Em curso' : statusKey === 'COMPLETED' ? 'Concluídos' : 'Cancelados'}</p>
+            <p className="text-2xl font-semibold mt-2 text-white">{counts[statusKey.toLowerCase()] ?? 0}</p>
+          </button>
+        ))}
       </div>
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => <div key={i} className="card h-44 animate-pulse" />)}
+          {[...Array(6)].map((_, i) => <div key={i} className="card h-48 animate-pulse" />)}
         </div>
       ) : data?.data?.length === 0 ? (
         <EmptyState icon={Calendar} title="Nenhum evento encontrado" description="Crie o primeiro evento da organização." />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {data?.data?.map((ev: any) => (
-            <div key={ev.id} className={`card-hover p-5 border-t-4 ${statusColor[ev.status] || 'border-t-slate-200'}`}>
-              <div className="flex items-start justify-between mb-3">
-                <h3 className="font-semibold text-slate-900 flex-1 leading-snug">{ev.nome}</h3>
-                <StatusBadge status={ev.status} />
-              </div>
-              {ev.descricao && <p className="text-sm text-slate-500 mb-3 line-clamp-2">{ev.descricao}</p>}
-              <div className="space-y-2">
-                {ev.local && (
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
-                    <MapPin size={12} className="text-slate-400 flex-shrink-0" />
-                    <span className="truncate">{ev.local}</span>
+            <div key={ev.id} className={`card relative overflow-hidden border-l-4 ${statusColor[ev.status] || 'border-l-slate-200'}`}>
+              <div className="absolute inset-0 gradient-accent opacity-0 hover:opacity-70 transition" />
+              <div className="relative space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">{ev.nome}</h3>
+                  <StatusBadge status={ev.status} />
+                </div>
+                {ev.descricao && <p className="text-sm text-muted line-clamp-2">{ev.descricao}</p>}
+                <div className="space-y-2 text-xs text-muted">
+                  {ev.local && (
+                    <div className="flex items-center gap-2">
+                      <MapPin size={12} />
+                      <span>{ev.local}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <Clock size={12} />
+                    <span>{new Date(ev.dataInicio).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}</span>
+                  </div>
+                  {ev.capacidade && (
+                    <div className="flex items-center gap-2">
+                      <Users size={12} />
+                      <span>{ev._count?.registrations ?? 0}/{ev.capacidade} inscritos</span>
+                    </div>
+                  )}
+                </div>
+                {ev.campaign && (
+                  <div className="text-xs text-accent-light">
+                    Campanha: {ev.campaign.nome}
                   </div>
                 )}
-                <div className="flex items-center gap-2 text-xs text-slate-500">
-                  <Clock size={12} className="text-slate-400" />
-                  <span>{new Date(ev.dataInicio).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                <div className="flex items-center gap-2 pt-3 border-t border-white/10 text-xs">
+                  <button
+                    type="button"
+                    className="btn-outline text-[11px] flex items-center gap-2"
+                    onClick={() => openEventAssignmentModal(ev)}
+                  >
+                    <UserPlus size={14} /> Voluntários
+                  </button>
+                  <Link href={`/events/${ev.id}`} className="flex items-center gap-1 text-accent-light">
+                    Detalhes <ArrowRight size={14} />
+                  </Link>
                 </div>
-                {ev.capacidade && (
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
-                    <Users size={12} className="text-slate-400" />
-                    <span>{ev._count?.registrations ?? 0}/{ev.capacidade} inscritos</span>
-                  </div>
-                )}
-              </div>
-              {ev.campaign && (
-                <div className="mt-3 pt-3 border-t border-slate-50">
-                  <p className="text-xs text-brand-600 font-medium">{ev.campaign.nome}</p>
-                </div>
-              )}
-              <div className="mt-4 flex items-center gap-2">
-                <button
-                  type="button"
-                  className="btn-secondary text-xs flex items-center gap-2 px-3 py-2"
-                  onClick={() => openEventAssignmentModal(ev)}
-                >
-                  <UserPlus size={14} /> Voluntários
-                </button>
               </div>
             </div>
           ))}
@@ -200,13 +230,13 @@ export default function EventsPage() {
         {eventAssignment && (
           <div className="space-y-6">
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-[0.4em] text-emerald-500">Evento</p>
-              <h3 className="text-2xl font-black text-slate-900">{eventAssignment.nome}</h3>
-              <p className="text-sm text-slate-500">{eventAssignment.descricao || 'Sem descrição adicional.'}</p>
+              <p className="text-xs uppercase tracking-[0.4em] text-accent">Evento</p>
+              <h3 className="text-2xl font-black text-white">{eventAssignment.nome}</h3>
+              <p className="text-sm text-muted">{eventAssignment.descricao || 'Sem descrição adicional.'}</p>
             </div>
             <form onSubmit={handleEventAssign} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs text-slate-500 uppercase tracking-[0.3em]">Adicionar voluntário</label>
+                <label className="text-xs text-muted uppercase tracking-[0.3em]">Adicionar voluntário</label>
                 <select
                   className="input"
                   value={eventSelectedVolunteerId}
@@ -218,10 +248,10 @@ export default function EventsPage() {
                   ))}
                 </select>
                 {eventCandidateVolunteers.length === 0 && (
-                  <p className="text-xs text-slate-400">Não há voluntários livres para este evento.</p>
+                  <p className="text-xs text-muted">Não há voluntários livres para este evento.</p>
                 )}
               </div>
-              {eventAssignmentFeedback && <p className="text-sm text-emerald-600">{eventAssignmentFeedback}</p>}
+              {eventAssignmentFeedback && <p className="text-sm text-accent">{eventAssignmentFeedback}</p>}
               <button
                 type="submit"
                 className="btn-primary w-full flex items-center justify-center gap-2"
@@ -233,21 +263,21 @@ export default function EventsPage() {
             </form>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Voluntários registrados</p>
-                <span className="text-xs text-slate-400">{eventAssignedVolunteers.length} total</span>
+                <p className="text-xs uppercase tracking-[0.3em] text-muted">Voluntários registrados</p>
+                <span className="text-xs text-muted">{eventAssignedVolunteers.length} total</span>
               </div>
               {eventAssignmentFetching ? (
-                <p className="text-sm text-slate-500">Carregando lista...</p>
+                <p className="text-sm text-muted">Carregando lista...</p>
               ) : eventAssignedVolunteers.length === 0 ? (
-                <p className="text-sm text-slate-500">Nenhum voluntário registrado ainda.</p>
+                <p className="text-sm text-muted">Nenhum voluntário registrado ainda.</p>
               ) : (
                 <div className="space-y-2">
                   {eventAssignedVolunteers.map(registration => (
                     <div key={registration.id} className="flex items-center justify-between gap-3 border border-slate-100 rounded-2xl p-3">
                       <div>
-                        <p className="text-sm font-semibold text-slate-900">{registration.volunteer?.nome || 'Voluntário desconhecido'}</p>
-                        <p className="text-xs text-slate-500">{registration.volunteer?.profissao || 'Profissão não informada'}</p>
-                        <p className="text-xs text-slate-400 mt-1">{registration.checkedIn ? 'Check-in confirmado' : 'Sem check-in'}</p>
+                        <p className="text-sm font-semibold text-white">{registration.volunteer?.nome || 'Voluntário desconhecido'}</p>
+                        <p className="text-xs text-muted">{registration.volunteer?.profissao || 'Profissão não informada'}</p>
+                        <p className="text-xs text-muted mt-1">{registration.checkedIn ? 'Check-in confirmado' : 'Sem check-in'}</p>
                       </div>
                       <button
                         type="button"
