@@ -8,8 +8,8 @@ import { useAuthStore } from '@/lib/store'
 export default function LoginPage() {
   const router = useRouter()
   const { setAuth } = useAuthStore()
-  const [email, setEmail] = useState('admin@voluntariosunidos.org.br')
-  const [password, setPassword] = useState('admin123')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPwd, setShowPwd] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -98,12 +98,6 @@ export default function LoginPage() {
               {loading ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
-
-          <div className="mt-6 p-4 bg-white/3 rounded-xl border border-white/5">
-            <p className="text-slate-500 text-xs font-medium mb-2">Credenciais de demonstração:</p>
-            <p className="text-slate-400 text-xs">Admin: <span className="text-slate-300">admin@voluntariosunidos.org.br</span></p>
-            <p className="text-slate-400 text-xs">Senha: <span className="text-slate-300">admin123</span></p>
-          </div>
         </div>
       </div>
     </div>

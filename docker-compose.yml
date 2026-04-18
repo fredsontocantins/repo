@@ -29,12 +29,20 @@ services:
       - "3001:3001"
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/voluntarios
-      JWT_SECRET: voluntarios-super-secret-jwt-2024
-      FRONTEND_URL: http://localhost:3000
-      NODE_ENV: production
+      # Obrigatório — defina em .env (copie de .env.example). Nunca commitar.
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET é obrigatório. Gere com: openssl rand -base64 48}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      NODE_ENV: ${NODE_ENV:-production}
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/api/v1/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   frontend:
     build:
@@ -53,7 +61,14 @@ services:
       # Mantido para compatibilidade com SSR direto
       NEXT_PUBLIC_API_URL: http://voluntarios_api:3001/api/v1
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
 volumes:
   postgres_data:

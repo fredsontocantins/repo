@@ -44,17 +44,18 @@ export class AuthService {
     }
   }
 
-  async register(data: { name: string; email: string; password: string; organizationId?: number }) {
+  async register(data: { name: string; email: string; password: string }) {
     const exists = await this.prisma.user.findUnique({ where: { email: data.email } })
     if (exists) throw new ConflictException('Email já cadastrado')
 
     const passwordHash = await bcrypt.hash(data.password, 10)
+    // Cadastro público cria sempre como VOLUNTEER sem vincular a organização —
+    // a associação a uma organização é feita por um ADMIN via /users.
     const user = await this.prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
         passwordHash,
-        organizationId: data.organizationId,
       },
       include: { organization: true },
     })
