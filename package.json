@@ -1,0 +1,24 @@
+{
+  "name": "voluntarios-saas",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Monorepo do Voluntários SaaS — scripts agregados e pre-commit.",
+  "scripts": {
+    "prepare": "husky install",
+    "lint": "npm run lint --prefix backend && npm run lint --prefix frontend",
+    "typecheck": "npm run typecheck --prefix backend && npm run typecheck --prefix frontend",
+    "test": "npm run test --prefix backend"
+  },
+  "devDependencies": {
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10"
+  },
+  "lint-staged": {
+    "backend/**/*.ts": [
+      "prettier --write --ignore-unknown"
+    ],
+    "frontend/**/*.{ts,tsx}": [
+      "prettier --write --ignore-unknown"
+    ]
+  }
+}

@@ -5,6 +5,8 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { RolesGuard } from '../../common/guards/roles.guard'
 import { CurrentUser, Roles } from '../../common/decorators/index'
 import { UserRole } from '@prisma/client'
+import type { AuthenticatedUser } from '../../common/types/authenticated-user'
+import { CreateMemberDto, UpdateMemberDto } from './dto/member.dto'
 
 @ApiTags('Membros')
 @ApiBearerAuth()
@@ -15,39 +17,39 @@ export class MembersController {
 
   @Get()
   findAll(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Query('search') search?: string,
     @Query('role') role?: string,
     @Query('page') page?: number,
   ) {
-    return this.service.findAll(user.orgId, { search, role, page })
+    return this.service.findAll(user.orgId!, { search, role, page })
   }
 
   @Get('stats')
-  getStats(@CurrentUser() user: any) {
-    return this.service.getStats(user.orgId)
+  getStats(@CurrentUser() user: AuthenticatedUser) {
+    return this.service.getStats(user.orgId!)
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
-    return this.service.findOne(id, user.orgId)
+  findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser) {
+    return this.service.findOne(id, user.orgId!)
   }
 
   @Post()
   @Roles(UserRole.ADMIN)
-  create(@CurrentUser() user: any, @Body() body: any) {
-    return this.service.create(user.orgId, body)
+  create(@CurrentUser() user: AuthenticatedUser, @Body() body: CreateMemberDto) {
+    return this.service.create(user.orgId!, body)
   }
 
   @Put(':id')
   @Roles(UserRole.ADMIN)
-  update(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any, @Body() body: any) {
-    return this.service.update(id, user.orgId, body)
+  update(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser, @Body() body: UpdateMemberDto) {
+    return this.service.update(id, user.orgId!, body)
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
-  deactivate(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
-    return this.service.deactivate(id, user.orgId)
+  deactivate(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser) {
+    return this.service.deactivate(id, user.orgId!)
   }
 }

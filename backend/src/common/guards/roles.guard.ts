@@ -15,15 +15,16 @@ export class RolesGuard implements CanActivate {
 
     if (!requiredRoles) return true
 
-    const { user } = context.switchToHttp().getRequest()
-    const roleHierarchy = {
+    const { user } = context.switchToHttp().getRequest<{ user?: { role?: UserRole } }>()
+    const roleHierarchy: Record<UserRole, number> = {
       [UserRole.SUPER_ADMIN]: 4,
       [UserRole.ADMIN]: 3,
       [UserRole.COORDINATOR]: 2,
       [UserRole.VOLUNTEER]: 1,
     }
 
-    const userLevel = roleHierarchy[user.role] || 0
+    const userRole = user?.role
+    const userLevel = userRole ? roleHierarchy[userRole] ?? 0 : 0
     const hasRole = requiredRoles.some((role) => userLevel >= roleHierarchy[role])
 
     if (!hasRole) {

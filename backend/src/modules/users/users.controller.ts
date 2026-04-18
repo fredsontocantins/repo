@@ -1,27 +1,10 @@
 import { Controller, Get, Post, Put, Delete, Body, Query, Param, ParseIntPipe, BadRequestException } from '@nestjs/common'
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { UsersService } from './users.service'
-import type { ModuleAccess } from './users.service'
 import { CurrentUser, Roles } from '../../common/decorators/index'
 import { UserRole } from '@prisma/client'
-
-class CreateUserDto {
-  name!: string
-  email!: string
-  password!: string
-  role?: UserRole
-  organizationId?: number
-  modules?: ModuleAccess[]
-}
-
-class UpdateUserDto {
-  name?: string
-  email?: string
-  role?: UserRole
-  password?: string
-  isActive?: boolean
-  modules?: ModuleAccess[]
-}
+import type { AuthenticatedUser } from '../../common/types/authenticated-user'
+import { CreateUserDto, UpdateUserDto, UpdateUserModulesDto } from './dto/user.dto'
 
 @ApiTags('Usuários')
 @ApiBearerAuth()
@@ -30,14 +13,14 @@ class UpdateUserDto {
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  private resolveOrg(user: any, overrideOrgId?: number) {
+  private resolveOrg(user: AuthenticatedUser, overrideOrgId?: number): number | undefined {
     if (user.role === UserRole.SUPER_ADMIN) return overrideOrgId
-    return user.orgId
+    return user.orgId ?? undefined
   }
 
   @Get()
   list(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('search') search?: string,
@@ -48,37 +31,37 @@ export class UsersController {
   }
 
   @Get(':id')
-  detail(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any, @Query('orgId') orgId?: number) {
+  detail(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser, @Query('orgId') orgId?: number) {
     const targetOrg = this.resolveOrg(user, orgId)
     return this.usersService.getById(id, targetOrg)
   }
 
   @Post()
-  create(@CurrentUser() user: any, @Body() body: CreateUserDto) {
+  create(@CurrentUser() user: AuthenticatedUser, @Body() body: CreateUserDto) {
     const orgContext = user.role === UserRole.SUPER_ADMIN ? body.organizationId : user.orgId
     if (!orgContext) throw new BadRequestException('Organização obrigatória para cadastro')
-    return this.usersService.create(orgContext, body)
+    return this.usersService.create(orgContext, body as any)
   }
 
   @Put(':id')
-  update(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any, @Body() body: UpdateUserDto, @Query('orgId') orgId?: number) {
+  update(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser, @Body() body: UpdateUserDto, @Query('orgId') orgId?: number) {
     const targetOrg = this.resolveOrg(user, orgId)
-    return this.usersService.update(id, targetOrg, body)
+    return this.usersService.update(id, targetOrg, body as any)
   }
 
   @Put(':id/modules')
   updateModules(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() user: any,
-    @Body('modules') modules: ModuleAccess[],
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: UpdateUserModulesDto,
     @Query('orgId') orgId?: number,
   ) {
     const targetOrg = this.resolveOrg(user, orgId)
-    return this.usersService.update(id, targetOrg, { modules })
+    return this.usersService.update(id, targetOrg, { modules: body.modules as any })
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any, @Query('orgId') orgId?: number) {
+  remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser, @Query('orgId') orgId?: number) {
     const targetOrg = this.resolveOrg(user, orgId)
     return this.usersService.remove(id, targetOrg)
   }

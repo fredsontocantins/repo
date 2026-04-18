@@ -5,6 +5,8 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { RolesGuard } from '../../common/guards/roles.guard'
 import { CurrentUser, Roles } from '../../common/decorators/index'
 import { UserRole } from '@prisma/client'
+import type { AuthenticatedUser } from '../../common/types/authenticated-user'
+import { AwardBadgeDto, CreateBadgeDto } from './dto/gamification.dto'
 
 @ApiTags('Gamificação')
 @ApiBearerAuth()
@@ -14,8 +16,8 @@ export class GamificationController {
   constructor(private service: GamificationService) {}
 
   @Get('leaderboard')
-  getLeaderboard(@CurrentUser() user: any, @Query('limit') limit?: number) {
-    return this.service.getLeaderboard(user.orgId, limit)
+  getLeaderboard(@CurrentUser() user: AuthenticatedUser, @Query('limit') limit?: number) {
+    return this.service.getLeaderboard(user.orgId!, limit)
   }
 
   @Get('badges')
@@ -24,8 +26,8 @@ export class GamificationController {
   }
 
   @Get('stats')
-  getStats(@CurrentUser() user: any) {
-    return this.service.getStats(user.orgId)
+  getStats(@CurrentUser() user: AuthenticatedUser) {
+    return this.service.getStats(user.orgId!)
   }
 
   @Get('volunteer/:id/badges')
@@ -35,13 +37,13 @@ export class GamificationController {
 
   @Post('badges')
   @Roles(UserRole.ADMIN)
-  createBadge(@Body() body: any) {
+  createBadge(@Body() body: CreateBadgeDto) {
     return this.service.createBadge(body)
   }
 
   @Post('award')
   @Roles(UserRole.COORDINATOR, UserRole.ADMIN)
-  awardBadge(@Body() body: { volunteerId: number; badgeId: number }) {
+  awardBadge(@Body() body: AwardBadgeDto) {
     return this.service.awardBadge(body.volunteerId, body.badgeId)
   }
 

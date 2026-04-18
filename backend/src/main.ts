@@ -2,6 +2,7 @@ import 'reflect-metadata'
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import helmet from 'helmet'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
@@ -10,6 +11,10 @@ async function bootstrap() {
   })
 
   app.setGlobalPrefix('api/v1')
+
+  // Helmet: adiciona headers defensivos (CSP, HSTS, XSS etc.).
+  // contentSecurityPolicy desabilitado aqui para não quebrar o Swagger UI.
+  app.use(helmet({ contentSecurityPolicy: false }))
 
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',

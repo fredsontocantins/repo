@@ -5,6 +5,8 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { RolesGuard } from '../../common/guards/roles.guard'
 import { CurrentUser, Roles } from '../../common/decorators/index'
 import { UserRole } from '@prisma/client'
+import type { AuthenticatedUser } from '../../common/types/authenticated-user'
+import { CreateEventDto, RegisterEventDto, UpdateEventDto } from './dto/event.dto'
 
 @ApiTags('Eventos')
 @ApiBearerAuth()
@@ -14,42 +16,42 @@ export class EventsController {
   constructor(private eventsService: EventsService) {}
 
   @Get()
-  findAll(@CurrentUser() user: any, @Query('status') status?: string, @Query('page') page?: number) {
-    return this.eventsService.findAll(user.orgId, { status, page })
+  findAll(@CurrentUser() user: AuthenticatedUser, @Query('status') status?: string, @Query('page') page?: number) {
+    return this.eventsService.findAll(user.orgId!, { status, page })
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
-    return this.eventsService.findOne(id, user.orgId)
+  findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser) {
+    return this.eventsService.findOne(id, user.orgId!)
   }
 
   @Post()
   @Roles(UserRole.COORDINATOR, UserRole.ADMIN)
-  create(@CurrentUser() user: any, @Body() body: any) {
-    return this.eventsService.create(user.orgId, body)
+  create(@CurrentUser() user: AuthenticatedUser, @Body() body: CreateEventDto) {
+    return this.eventsService.create(user.orgId!, body)
   }
 
   @Put(':id')
   @Roles(UserRole.COORDINATOR, UserRole.ADMIN)
-  update(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any, @Body() body: any) {
-    return this.eventsService.update(id, user.orgId, body)
+  update(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser, @Body() body: UpdateEventDto) {
+    return this.eventsService.update(id, user.orgId!, body)
   }
 
   @Post(':id/register')
-  register(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any, @Body('volunteerId') volunteerId: number) {
-    return this.eventsService.register(id, volunteerId, user.orgId)
+  register(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser, @Body() body: RegisterEventDto) {
+    return this.eventsService.register(id, body.volunteerId, user.orgId!)
   }
 
   @Get(':id/volunteers')
   @Roles(UserRole.COORDINATOR, UserRole.ADMIN)
-  listVolunteers(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
-    return this.eventsService.listRegistrations(id, user.orgId)
+  listVolunteers(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser) {
+    return this.eventsService.listRegistrations(id, user.orgId!)
   }
 
   @Post(':id/checkin')
   @Roles(UserRole.COORDINATOR, UserRole.ADMIN)
-  checkin(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any, @Body('volunteerId') volunteerId: number) {
-    return this.eventsService.checkin(id, volunteerId, user.orgId)
+  checkin(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser, @Body() body: RegisterEventDto) {
+    return this.eventsService.checkin(id, body.volunteerId, user.orgId!)
   }
 
   @Delete(':id/volunteers/:volunteerId')
@@ -57,8 +59,8 @@ export class EventsController {
   unregisterVolunteer(
     @Param('id', ParseIntPipe) id: number,
     @Param('volunteerId', ParseIntPipe) volunteerId: number,
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.eventsService.unregister(id, volunteerId, user.orgId)
+    return this.eventsService.unregister(id, volunteerId, user.orgId!)
   }
 }

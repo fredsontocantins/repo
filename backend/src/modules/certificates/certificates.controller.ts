@@ -5,6 +5,8 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { RolesGuard } from '../../common/guards/roles.guard'
 import { CurrentUser, Roles, Public } from '../../common/decorators/index'
 import { UserRole, CertificateType } from '@prisma/client'
+import type { AuthenticatedUser } from '../../common/types/authenticated-user'
+import { CreateCertificateDto, IssueBulkCertificatesDto, RevokeCertificateDto } from './dto/certificate.dto'
 
 @ApiTags('Certificados')
 @Controller('certificates')
@@ -24,26 +26,26 @@ export class CertificatesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   findAll(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Query('volunteerId') volunteerId?: number,
     @Query('tipo') tipo?: CertificateType,
     @Query('page') page?: number,
   ) {
-    return this.service.findAll(user.orgId, { volunteerId, tipo, page })
+    return this.service.findAll(user.orgId!, { volunteerId, tipo, page })
   }
 
   @Get('stats')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  getStats(@CurrentUser() user: any) {
-    return this.service.getStats(user.orgId)
+  getStats(@CurrentUser() user: AuthenticatedUser) {
+    return this.service.getStats(user.orgId!)
   }
 
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
-    return this.service.findOne(id, user.orgId)
+  findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser) {
+    return this.service.findOne(id, user.orgId!)
   }
 
   @Post()
@@ -51,8 +53,8 @@ export class CertificatesController {
   @Roles(UserRole.COORDINATOR, UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Emitir certificado individual' })
-  create(@CurrentUser() user: any, @Body() body: any) {
-    return this.service.create(user.orgId, { ...body, emitidoPor: user.email })
+  create(@CurrentUser() user: AuthenticatedUser, @Body() body: CreateCertificateDto) {
+    return this.service.create(user.orgId!, { ...body, emitidoPor: user.email })
   }
 
   @Post('bulk')
@@ -60,8 +62,8 @@ export class CertificatesController {
   @Roles(UserRole.COORDINATOR, UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Emitir certificados em lote' })
-  issueBulk(@CurrentUser() user: any, @Body() body: any) {
-    return this.service.issueBulk(user.orgId, { ...body, emitidoPor: user.email })
+  issueBulk(@CurrentUser() user: AuthenticatedUser, @Body() body: IssueBulkCertificatesDto) {
+    return this.service.issueBulk(user.orgId!, { ...body, emitidoPor: user.email })
   }
 
   @Put(':id/revoke')
@@ -71,9 +73,9 @@ export class CertificatesController {
   @ApiOperation({ summary: 'Revogar certificado' })
   revoke(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() user: any,
-    @Body('motivoRevogacao') motivo: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: RevokeCertificateDto,
   ) {
-    return this.service.revoke(id, user.orgId, motivo)
+    return this.service.revoke(id, user.orgId!, body.motivoRevogacao)
   }
 }

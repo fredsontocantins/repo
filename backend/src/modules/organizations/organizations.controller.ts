@@ -5,6 +5,8 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { RolesGuard } from '../../common/guards/roles.guard'
 import { CurrentUser, Roles } from '../../common/decorators/index'
 import { UserRole } from '@prisma/client'
+import type { AuthenticatedUser } from '../../common/types/authenticated-user'
+import { UpdateOrganizationDto } from './dto/organization.dto'
 
 @ApiTags('Organização')
 @ApiBearerAuth()
@@ -14,18 +16,18 @@ export class OrganizationsController {
   constructor(private service: OrganizationsService) {}
 
   @Get()
-  findOne(@CurrentUser() user: any) {
-    return this.service.findOne(user.orgId)
+  findOne(@CurrentUser() user: AuthenticatedUser) {
+    return this.service.findOne(user.orgId!)
   }
 
   @Get('dashboard')
-  getDashboard(@CurrentUser() user: any) {
-    return this.service.getDashboardStats(user.orgId)
+  getDashboard(@CurrentUser() user: AuthenticatedUser) {
+    return this.service.getDashboardStats(user.orgId!)
   }
 
   @Put()
   @Roles(UserRole.ADMIN)
-  update(@CurrentUser() user: any, @Body() body: any) {
-    return this.service.update(user.orgId, body)
+  update(@CurrentUser() user: AuthenticatedUser, @Body() body: UpdateOrganizationDto) {
+    return this.service.update(user.orgId!, body)
   }
 }

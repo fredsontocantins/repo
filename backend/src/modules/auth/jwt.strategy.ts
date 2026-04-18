@@ -1,25 +1,34 @@
 import { Injectable } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
 import { ExtractJwt, Strategy } from 'passport-jwt'
-import { ConfigService } from '@nestjs/config'
+import { getJwtSecret } from '../../common/config/env'
+import type { AuthenticatedUser } from '../../common/types/authenticated-user'
+
+interface JwtPayload {
+  sub: number
+  email: string
+  role: AuthenticatedUser['role']
+  orgId: number | null
+  modules?: AuthenticatedUser['modules']
+}
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(configService: ConfigService) {
+  constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get('JWT_SECRET') || 'voluntarios-secret-2024',
+      secretOrKey: getJwtSecret(),
     })
   }
 
-  async validate(payload: any) {
+  async validate(payload: JwtPayload): Promise<AuthenticatedUser> {
     return {
       sub: payload.sub,
       email: payload.email,
       role: payload.role,
       orgId: payload.orgId,
-      modules: payload.modules || [],
+      modules: payload.modules ?? [],
     }
   }
 }

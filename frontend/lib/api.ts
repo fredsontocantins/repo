@@ -1,4 +1,5 @@
 // /proxy é reescrito pelo Next.js para o backend interno (ver next.config.js)
+import type { AuthUser, Campaign, LoginResponse, Paginated, Volunteer } from './types'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'
 const API_PROXY = process.env.NEXT_PUBLIC_API_PROXY || '/proxy'
@@ -52,8 +53,8 @@ const qs = (p?: Record<string, any>) =>
 export const api = {
   // Auth
   login: (email: string, password: string) =>
-    request<{ token: string; user: any }>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
-  me: () => request<any>('/auth/me'),
+    request<LoginResponse>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
+  me: () => request<AuthUser>('/auth/me'),
 
   // Users
   getUsers: (p?: Record<string, any>) => request<any>(`/users${qs(p)}`),
@@ -65,8 +66,8 @@ export const api = {
   getDashboard: () => request<any>('/organization/dashboard'),
 
   // Volunteers
-  getVolunteers: (p?: Record<string, any>) => request<any>(`/volunteers${qs(p)}`),
-  getVolunteer: (id: number) => request<any>(`/volunteers/${id}`),
+  getVolunteers: (p?: Record<string, any>) => request<Paginated<Volunteer>>(`/volunteers${qs(p)}`),
+  getVolunteer: (id: number) => request<Volunteer>(`/volunteers/${id}`),
   getVolunteerStats: () => request<any>('/volunteers/stats'),
   createVolunteer: (data: any) => request<any>('/volunteers', { method: 'POST', body: JSON.stringify(data) }),
   updateVolunteer: (id: number, data: any) => request<any>(`/volunteers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -74,8 +75,8 @@ export const api = {
   addPoints: (id: number, points: number) => request<any>(`/volunteers/${id}/points`, { method: 'POST', body: JSON.stringify({ points }) }),
 
   // Campaigns
-  getCampaigns: (p?: Record<string, any>) => request<any>(`/campaigns${qs(p)}`),
-  getCampaign: (id: number) => request<any>(`/campaigns/${id}`),
+  getCampaigns: (p?: Record<string, any>) => request<Paginated<Campaign>>(`/campaigns${qs(p)}`),
+  getCampaign: (id: number) => request<Campaign>(`/campaigns/${id}`),
   getCampaignStats: () => request<any>('/campaigns/stats'),
   createCampaign: (data: any) => request<any>('/campaigns', { method: 'POST', body: JSON.stringify(data) }),
   updateCampaign: (id: number, data: any) => request<any>(`/campaigns/${id}`, { method: 'PUT', body: JSON.stringify(data) }),

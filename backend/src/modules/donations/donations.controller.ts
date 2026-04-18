@@ -5,6 +5,8 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
 import { RolesGuard } from '../../common/guards/roles.guard'
 import { CurrentUser, Roles } from '../../common/decorators/index'
 import { UserRole, DonationType, DonationStatus } from '@prisma/client'
+import type { AuthenticatedUser } from '../../common/types/authenticated-user'
+import { CreateDonationDto, UpdateDonationDto } from './dto/donation.dto'
 
 @ApiTags('Doações')
 @ApiBearerAuth()
@@ -15,34 +17,34 @@ export class DonationsController {
 
   @Get()
   findAll(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Query('tipo') tipo?: DonationType,
     @Query('status') status?: DonationStatus,
     @Query('campaignId') campaignId?: number,
     @Query('page') page?: number,
   ) {
-    return this.donationsService.findAll(user.orgId, { tipo, status, campaignId, page })
+    return this.donationsService.findAll(user.orgId!, { tipo, status, campaignId, page })
   }
 
   @Get('stats')
-  getStats(@CurrentUser() user: any) {
-    return this.donationsService.getStats(user.orgId)
+  getStats(@CurrentUser() user: AuthenticatedUser) {
+    return this.donationsService.getStats(user.orgId!)
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any) {
-    return this.donationsService.findOne(id, user.orgId)
+  findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser) {
+    return this.donationsService.findOne(id, user.orgId!)
   }
 
   @Post()
   @Roles(UserRole.COORDINATOR, UserRole.ADMIN)
-  create(@CurrentUser() user: any, @Body() body: any) {
-    return this.donationsService.create(user.orgId, body)
+  create(@CurrentUser() user: AuthenticatedUser, @Body() body: CreateDonationDto) {
+    return this.donationsService.create(user.orgId!, body)
   }
 
   @Put(':id')
   @Roles(UserRole.COORDINATOR, UserRole.ADMIN)
-  update(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: any, @Body() body: any) {
-    return this.donationsService.update(id, user.orgId, body)
+  update(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser, @Body() body: UpdateDonationDto) {
+    return this.donationsService.update(id, user.orgId!, body)
   }
 }
