@@ -2,6 +2,7 @@ import { Controller, Get, Param, Query, ParseIntPipe, Post, Body } from '@nestjs
 import { ApiTags, ApiOperation } from '@nestjs/swagger'
 import { PublicService } from './public.service'
 import { Public } from '../../common/decorators/index'
+import { PublicDonationIntentDto, PublicVolunteerIntentDto } from './dto/donation-intent.dto'
 
 @ApiTags('Portal Público')
 @Controller('public')
@@ -74,5 +75,27 @@ export class PublicController {
   async getCampaignDetail(@Param('slug') slug: string, @Param('id', ParseIntPipe) id: number) {
     const org = await this.service.getOrgBySlug(slug)
     return this.service.getCampaignById(org.id, id)
+  }
+
+  @Post('org/:slug/volunteer-intent')
+  @Public()
+  @ApiOperation({ summary: 'Registrar intenção genérica de voluntariado (portal público)' })
+  async registerVolunteerIntent(
+    @Param('slug') slug: string,
+    @Body() body: PublicVolunteerIntentDto,
+  ) {
+    const org = await this.service.getOrgBySlug(slug)
+    return this.service.registerVolunteerIntent(org.id, body)
+  }
+
+  @Post('org/:slug/donation-intent')
+  @Public()
+  @ApiOperation({ summary: 'Registrar intenção de doação (portal público). Cria Donation com status=PENDING' })
+  async registerDonationIntent(
+    @Param('slug') slug: string,
+    @Body() body: PublicDonationIntentDto,
+  ) {
+    const org = await this.service.getOrgBySlug(slug)
+    return this.service.registerDonationIntent(org.id, body)
   }
 }

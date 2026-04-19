@@ -173,4 +173,71 @@ export class PublicService {
       },
     })
   }
+
+  /** Volunteer intent without a specific campaign (portal generic CTA). */
+  async registerVolunteerIntent(
+    orgId: number,
+    data: { nome: string; email: string; telefone?: string; profissao?: string; mensagem?: string; campaignId?: number },
+  ) {
+    let campaignId = data.campaignId
+    if (!campaignId) {
+      const campaign = await this.prisma.campaign.findFirst({
+        where: { organizationId: orgId, publicavel: true, status: 'ACTIVE' },
+        orderBy: [{ destaque: 'desc' }, { createdAt: 'desc' }],
+        select: { id: true },
+      })
+      if (!campaign) throw new NotFoundException('Nenhuma campanha pública disponível')
+      campaignId = campaign.id
+    } else {
+      const campaign = await this.prisma.campaign.findFirst({
+        where: { id: campaignId, organizationId: orgId, publicavel: true },
+        select: { id: true },
+      })
+      if (!campaign) throw new NotFoundException('Campanha não encontrada')
+    }
+
+    return this.prisma.campaignInterest.create({
+      data: {
+        campaignId,
+        organizationId: orgId,
+        nome: data.nome,
+        email: data.email,
+        telefone: data.telefone,
+        profissao: data.profissao,
+        mensagem: data.mensagem,
+      },
+    })
+  }
+
+  /**
+   * Public donation intent. Creates a Donation record with status=PENDING
+   * so that the organization admin can confirm/follow up offline (PIX, transfer, etc).
+   */
+  async registerDonationIntent(
+    orgId: number,
+    data: { nome: string; email: string; telefone?: string; tipo?: any; valor?: number; mensagem?: string; campaignId?: number },
+  ) {
+    if (data.campaignId) {
+      const campaign = await this.prisma.campaign.findFirst({
+        where: { id: data.campaignId, organizationId: orgId, publicavel: true },
+        select: { id: true },
+      })
+      if (!campaign) throw new NotFoundException('Campanha não encontrada')
+    }
+
+    return this.prisma.donation.create({
+      data: {
+        organizationId: orgId,
+        campaignId: data.campaignId ?? null,
+        tipo: data.tipo ?? 'MONETARY',
+        valor: data.valor ?? null,
+        status: 'PENDING',
+        doadorNome: data.nome,
+        doadorEmail: data.email,
+        doadorTelefone: data.telefone ?? null,
+        mensagem: data.mensagem ?? null,
+      },
+      select: { id: true, status: true, tipo: true, valor: true },
+    })
+  }
 }
