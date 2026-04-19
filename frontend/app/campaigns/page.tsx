@@ -4,9 +4,11 @@ import Link from 'next/link'
 import { Megaphone, Plus, Search, Users, DollarSign, UserPlus, Trash2, Sparkles, ArrowRight } from 'lucide-react'
 import { api } from '@/lib/api'
 import StatusBadge from '@/components/ui/StatusBadge'
+import StatusFilterChips from '@/components/ui/StatusFilterChips'
 import ProgressBar from '@/components/ui/ProgressBar'
 import Modal from '@/components/ui/Modal'
 import EmptyState from '@/components/ui/EmptyState'
+import { CAMPAIGN_STATUS_STYLE, CAMPAIGN_STATUS_ORDER } from '@/lib/chart-colors'
 
 export default function CampaignsPage() {
   const [data, setData] = useState<any>(null)
@@ -34,16 +36,15 @@ export default function CampaignsPage() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const params: any = {}
+      const params: any = { limit: 200 }
       if (search) params.search = search
-      if (status) params.status = status
       const [res, s] = await Promise.all([api.getCampaigns(params), stats ? null : api.getCampaignStats()])
       setData(res)
       if (s) setStats(s)
     } finally {
       setLoading(false)
     }
-  }, [search, status, stats])
+  }, [search, stats])
 
   const loadInterests = useCallback(async () => {
     setInterestLoading(true)
@@ -162,25 +163,23 @@ export default function CampaignsPage() {
     }
   }
 
-  const statusColors: Record<string, string> = {
-    ACTIVE: 'border-l-pink-400',
-    COMPLETED: 'border-l-blue-500',
-    PAUSED: 'border-l-amber-500',
-    DRAFT: 'border-l-slate-300',
-    CANCELLED: 'border-l-red-400',
-  }
-
   const candidateVolunteers = useMemo(() => {
     const assignedIds = new Set(assignedVolunteers.map(v => v.volunteer?.id))
     return availableVolunteers.filter(v => !assignedIds.has(v.id))
   }, [availableVolunteers, assignedVolunteers])
 
-  const counts = useMemo(() => ({
-    total: data?.total ?? 0,
-    active: data?.data?.filter((campaign: any) => campaign.status === 'ACTIVE').length ?? 0,
-    completed: data?.data?.filter((campaign: any) => campaign.status === 'COMPLETED').length ?? 0,
-    paused: data?.data?.filter((campaign: any) => campaign.status === 'PAUSED').length ?? 0,
-  }), [data])
+  const countsByStatus = useMemo(() => {
+    const acc: Record<string, number> = { ACTIVE: 0, DRAFT: 0, PAUSED: 0, COMPLETED: 0, CANCELLED: 0 }
+    data?.data?.forEach((c: any) => { if (acc[c.status] !== undefined) acc[c.status] += 1 })
+    return acc
+  }, [data])
+
+  const totalCount = data?.data?.length ?? 0
+
+  const filteredCampaigns = useMemo(() => {
+    if (!status) return data?.data ?? []
+    return (data?.data ?? []).filter((c: any) => c.status === status)
+  }, [data, status])
 
   const fmtBRL = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(value)
 
@@ -192,7 +191,7 @@ export default function CampaignsPage() {
           <div>
             <p className="text-xs uppercase tracking-[0.4em] text-muted">Campanhas</p>
             <h1 className="text-3xl font-display font-bold">Arrecadação estratégica</h1>
-            <p className="text-sm text-muted mt-1">{counts.total} campanhas em andamento com objetivo claro.</p>
+            <p className="text-sm text-muted mt-1">{totalCount} campanhas em andamento com objetivo claro.</p>
           </div>
           <div className="flex flex-wrap gap-3">
             <button className="btn-primary" onClick={() => setShowModal(true)}>
@@ -205,88 +204,101 @@ export default function CampaignsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { label: 'Ativas', value: counts.active },
-          { label: 'Concluídas', value: counts.completed },
-          { label: 'Pausadas', value: counts.paused },
-          { label: 'Total', value: counts.total },
-        ].map(stat => (
-          <div key={stat.label} className="card p-4 transition border border-transparent hover:border-white/30">
-            <p className="text-xs uppercase tracking-[0.3em] text-muted">{stat.label}</p>
-            <p className="text-2xl font-semibold text-white">{stat.value}</p>
+      <div className="card p-4 space-y-4">
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="search"
+              placeholder="Busque campanhas ou metas"
+              className="input w-full pl-10"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
           </div>
-        ))}
-      </div>
-
-      <div className="card p-4 flex flex-col md:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
-          <input
-            type="search"
-            placeholder="Busque campanhas ou metas"
-            className="input w-full pl-12"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
         </div>
-        <select className="input w-full md:w-1/3" value={status} onChange={e => setStatus(e.target.value)}>
-          <option value="">Todos os status</option>
-          {['ACTIVE', 'COMPLETED', 'PAUSED', 'CANCELLED', 'DRAFT'].map(s => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
+        <StatusFilterChips
+          styles={CAMPAIGN_STATUS_STYLE}
+          order={CAMPAIGN_STATUS_ORDER}
+          counts={countsByStatus}
+          total={totalCount}
+          value={status}
+          onChange={setStatus}
+          allLabel="Todas"
+        />
       </div>
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => <div key={i} className="card h-48 animate-pulse" />)}
         </div>
-      ) : data?.data?.length === 0 ? (
-        <EmptyState icon={Megaphone} title="Nenhuma campanha encontrada" description="Crie uma nova campanha para engajar voluntários." />
+      ) : filteredCampaigns.length === 0 ? (
+        <EmptyState
+          icon={Megaphone}
+          title={status ? `Nenhuma campanha ${CAMPAIGN_STATUS_STYLE[status]?.label.toLowerCase() ?? ''}` : 'Nenhuma campanha encontrada'}
+          description={status ? 'Tente outro filtro ou crie uma nova campanha.' : 'Crie uma nova campanha para engajar voluntários.'}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {data?.data?.map((campaign: any) => (
-            <div
-              key={campaign.id}
-              className={`card relative overflow-hidden ${statusColors[campaign.status] ?? 'border-l-slate-200'}`}
-            >
-              <div className="absolute inset-0 gradient-accent opacity-0 hover:opacity-90 transition" />
-              <div className="relative space-y-3">
-                <div className="flex items-center gap-3">
-                  <Megaphone size={18} className="text-muted" />
-                  <h3 className="text-lg font-semibold">{campaign.nome}</h3>
-                </div>
-                <p className="text-sm text-muted line-clamp-2">{campaign.descricao || 'Campanha sem descrição.'}</p>
-                <div className="flex items-center justify-between text-[12px] text-muted">
-                  <span>Status: {campaign.status}</span>
-                  <span>{campaign.voluntariosAtivos ?? 0} voluntários alocados</span>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-[13px]">
-                    <span>Arrecadado</span>
-                    <strong>{fmtBRL(campaign.arrecadado || 0)}</strong>
+          {filteredCampaigns.map((campaign: any) => {
+            const s = CAMPAIGN_STATUS_STYLE[campaign.status] ?? CAMPAIGN_STATUS_STYLE.DRAFT
+            return (
+              <div
+                key={campaign.id}
+                className="card relative overflow-hidden group transition hover:-translate-y-0.5"
+                style={{ borderTop: `4px solid ${s.bar}` }}
+              >
+                <div
+                  className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-40 pointer-events-none"
+                  style={{ backgroundColor: s.bg }}
+                />
+                <div className="relative p-5 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Megaphone size={18} style={{ color: s.bar }} />
+                      <h3 className="text-base font-semibold text-slate-900 truncate">{campaign.nome}</h3>
+                    </div>
+                    <span
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap"
+                      style={{ backgroundColor: s.bg, color: s.text }}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.bar }} />
+                      {s.label}
+                    </span>
                   </div>
-                  <div className="flex items-center justify-between text-[13px]">
-                    <span>Meta</span>
-                    <strong>{fmtBRL(campaign.metaArrecadacao || 0)}</strong>
+                  <p className="text-sm text-slate-500 line-clamp-2">{campaign.descricao || 'Campanha sem descrição.'}</p>
+                  <div className="flex items-center justify-between text-[12px] text-slate-500">
+                    <span className="flex items-center gap-1"><Users size={12} /> {campaign.voluntariosAtivos ?? 0} voluntários</span>
+                    {campaign.dataFim && (
+                      <span>Até {new Date(campaign.dataFim).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span>
+                    )}
                   </div>
-                  <ProgressBar value={campaign.arrecadado || 0} max={campaign.metaArrecadacao || 1} size="sm" />
-                </div>
-                <div className="flex flex-wrap gap-2 mt-3 text-xs">
-                  <button
-                    className="btn-outline flex items-center gap-2 py-1 px-3"
-                    onClick={() => openAssignmentModal(campaign)}
-                  >
-                    <UserPlus size={16} /> Alocar voluntários
-                  </button>
-                  <Link href={`/campaigns/${campaign.id}`} className="flex items-center gap-1 text-accent-light">
-                    Ver campanha <ArrowRight size={14} />
-                  </Link>
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between text-[12px] text-slate-600">
+                      <span>Arrecadado</span>
+                      <strong className="text-slate-900">{fmtBRL(campaign.arrecadado || 0)}</strong>
+                    </div>
+                    <div className="flex items-center justify-between text-[12px] text-slate-500">
+                      <span>Meta</span>
+                      <span>{fmtBRL(campaign.metaArrecadacao || 0)}</span>
+                    </div>
+                    <ProgressBar value={campaign.arrecadado || 0} max={campaign.metaArrecadacao || 1} size="sm" />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-100 text-xs">
+                    <button
+                      className="btn-outline flex items-center gap-2 py-1 px-3 text-xs"
+                      onClick={() => openAssignmentModal(campaign)}
+                    >
+                      <UserPlus size={14} /> Alocar voluntários
+                    </button>
+                    <Link href={`/campaigns/${campaign.id}`} className="flex items-center gap-1 font-semibold" style={{ color: s.bar }}>
+                      Ver campanha <ArrowRight size={14} />
+                    </Link>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 

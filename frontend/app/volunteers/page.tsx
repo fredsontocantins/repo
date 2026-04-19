@@ -1,12 +1,11 @@
 'use client'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { Users, Search, Plus, Filter, Star, Clock, Award } from 'lucide-react'
 import { api } from '@/lib/api'
-import StatusBadge from '@/components/ui/StatusBadge'
+import StatusFilterChips from '@/components/ui/StatusFilterChips'
 import Modal from '@/components/ui/Modal'
 import EmptyState from '@/components/ui/EmptyState'
-
-const statusOptions = ['', 'ACTIVE', 'INACTIVE', 'PENDING', 'SUSPENDED']
+import { VOLUNTEER_STATUS_STYLE, VOLUNTEER_STATUS_ORDER } from '@/lib/chart-colors'
 
 export default function VolunteersPage() {
   const [data, setData] = useState<any>(null)
@@ -48,6 +47,13 @@ export default function VolunteersPage() {
 
   const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(n)
 
+  const statusCounts = useMemo(() => ({
+    ACTIVE: stats?.active ?? 0,
+    PENDING: stats?.pending ?? 0,
+    INACTIVE: stats?.inactive ?? 0,
+    SUSPENDED: stats?.suspended ?? 0,
+  }), [stats])
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -84,8 +90,8 @@ export default function VolunteersPage() {
       )}
 
       {/* Filters */}
-      <div className="card p-4 flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
+      <div className="card p-4 space-y-3">
+        <div className="relative">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             className="input pl-9"
@@ -94,10 +100,14 @@ export default function VolunteersPage() {
             onChange={e => { setSearch(e.target.value); setPage(1) }}
           />
         </div>
-        <select className="input w-auto min-w-[160px]" value={status} onChange={e => { setStatus(e.target.value); setPage(1) }}>
-          <option value="">Todos os status</option>
-          {statusOptions.slice(1).map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
+        <StatusFilterChips
+          styles={VOLUNTEER_STATUS_STYLE}
+          order={VOLUNTEER_STATUS_ORDER}
+          counts={statusCounts}
+          total={stats?.total ?? (data?.total ?? 0)}
+          value={status}
+          onChange={(v) => { setStatus(v); setPage(1) }}
+        />
       </div>
 
       {/* Grid */}
@@ -123,43 +133,59 @@ export default function VolunteersPage() {
         <EmptyState icon={Users} title="Nenhum voluntário encontrado" description="Tente ajustar os filtros ou adicione um novo voluntário." />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {data?.data?.map((v: any) => (
-            <div key={v.id} className="card-hover p-5 flex flex-col gap-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                    {v.nome[0].toUpperCase()}
+          {data?.data?.map((v: any) => {
+            const s = VOLUNTEER_STATUS_STYLE[v.status] ?? VOLUNTEER_STATUS_STYLE.PENDING
+            return (
+              <div
+                key={v.id}
+                className="card p-5 flex flex-col gap-3 transition hover:-translate-y-0.5"
+                style={{ borderTop: `4px solid ${s.bar}` }}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+                      style={{ backgroundColor: s.bar }}
+                    >
+                      {v.nome[0].toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-slate-900 text-sm leading-tight truncate">{v.nome}</p>
+                      <p className="text-slate-400 text-xs mt-1 truncate">{v.profissao || 'Sem profissão'}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-slate-900 text-sm leading-none truncate">{v.nome}</p>
-                    <p className="text-slate-400 text-xs mt-1 truncate">{v.profissao || 'Sem profissão'}</p>
-                  </div>
+                  <span
+                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
+                    style={{ backgroundColor: s.bg, color: s.text }}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.bar }} />
+                    {s.label}
+                  </span>
                 </div>
-                <StatusBadge status={v.status} />
-              </div>
 
-              {v.email && <p className="text-xs text-slate-400 truncate">{v.email}</p>}
+                {v.email && <p className="text-xs text-slate-400 truncate">{v.email}</p>}
 
-              <div className="flex items-center gap-3 pt-1 border-t border-slate-50">
-                <div className="flex items-center gap-1.5 text-xs text-amber-600">
-                  <Star size={12} className="fill-amber-400 text-amber-400" />
-                  <span className="font-semibold">{fmt(v.pontos)}</span>
-                  <span className="text-slate-400">pts</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-blue-600">
-                  <Clock size={12} />
-                  <span className="font-semibold">{v.horasContribuidas}h</span>
-                </div>
-                {v.badges?.length > 0 && (
-                  <div className="flex items-center gap-1 ml-auto">
-                    {v.badges.slice(0, 3).map((b: any) => (
-                      <span key={b.id} className="text-sm" title={b.badge.nome}>{b.badge.icone}</span>
-                    ))}
+                <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
+                  <div className="flex items-center gap-1.5 text-xs text-amber-600">
+                    <Star size={12} className="fill-amber-400 text-amber-400" />
+                    <span className="font-semibold">{fmt(v.pontos)}</span>
+                    <span className="text-slate-400">pts</span>
                   </div>
-                )}
+                  <div className="flex items-center gap-1.5 text-xs text-blue-600">
+                    <Clock size={12} />
+                    <span className="font-semibold">{v.horasContribuidas}h</span>
+                  </div>
+                  {v.badges?.length > 0 && (
+                    <div className="flex items-center gap-1 ml-auto">
+                      {v.badges.slice(0, 3).map((b: any) => (
+                        <span key={b.id} className="text-sm" title={b.badge.nome}>{b.badge.icone}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 

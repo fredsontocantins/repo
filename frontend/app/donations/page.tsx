@@ -2,11 +2,12 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Heart, Plus, Search, DollarSign, Package, TrendingUp } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend } from 'recharts'
+import { clsx } from 'clsx'
 import { api } from '@/lib/api'
 import StatusBadge from '@/components/ui/StatusBadge'
 import Modal from '@/components/ui/Modal'
 import EmptyState from '@/components/ui/EmptyState'
-import { CHART_AXIS, CHART_TOOLTIP_STYLE, DONATION_TYPE_COLOR } from '@/lib/chart-colors'
+import { CHART_AXIS, CHART_TOOLTIP_STYLE, DONATION_TYPE_COLOR, donationTypeColor, statusColor } from '@/lib/chart-colors'
 
 const TIPO_OPTIONS = ['MONETARY', 'FOOD', 'CLOTHING', 'MEDICINE', 'EQUIPMENT', 'SERVICE', 'OTHER']
 const TIPO_LABELS: Record<string, string> = {
@@ -14,11 +15,45 @@ const TIPO_LABELS: Record<string, string> = {
   MEDICINE: 'Medicamentos', EQUIPMENT: 'Equipamentos', SERVICE: 'Serviço', OTHER: 'Outro',
 }
 
+const STATUS_OPTIONS = ['PENDING', 'CONFIRMED', 'CANCELLED', 'REFUNDED']
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: 'Pendente', CONFIRMED: 'Confirmada', CANCELLED: 'Cancelada', REFUNDED: 'Estornada',
+}
+
+function FilterChip({ label, color, active, onClick }: { label: string; color?: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={clsx(
+        'inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold transition',
+        active && !color && 'bg-brand-600 text-white border-brand-600',
+        !active && !color && 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50',
+        !active && color && 'bg-white hover:bg-slate-50',
+      )}
+      style={
+        color
+          ? active
+            ? { backgroundColor: color, color: '#fff', borderColor: color }
+            : { color, borderColor: color + '55' }
+          : undefined
+      }
+    >
+      <span
+        className="w-1.5 h-1.5 rounded-full"
+        style={{ backgroundColor: color ? (active ? '#fff' : color) : (active ? '#fff' : '#94a3b8') }}
+      />
+      {label}
+    </button>
+  )
+}
+
 export default function DonationsPage() {
   const [data, setData] = useState<any>(null)
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [tipo, setTipo] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
   const [page, setPage] = useState(1)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({ tipo: 'MONETARY', valor: '', descricao: '', doadorNome: '', doadorEmail: '', campaignId: '' })
@@ -29,11 +64,12 @@ export default function DonationsPage() {
     try {
       const params: any = { page, limit: 15 }
       if (tipo) params.tipo = tipo
+      if (statusFilter) params.status = statusFilter
       const [res, s] = await Promise.all([api.getDonations(params), stats ? null : api.getDonationStats()])
       setData(res)
       if (s) setStats(s)
     } finally { setLoading(false) }
-  }, [tipo, page])
+  }, [tipo, statusFilter, page])
 
   useEffect(() => { load() }, [load])
 
@@ -112,15 +148,41 @@ export default function DonationsPage() {
         </div>
       )}
 
-      <div className="card p-4 flex gap-3">
-        <div className="relative flex-1">
+      <div className="card p-4 space-y-3">
+        <div className="relative">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input className="input pl-9" placeholder="Buscar doações..." />
         </div>
-        <select className="input w-auto min-w-[160px]" value={tipo} onChange={e => setTipo(e.target.value)}>
-          <option value="">Todos os tipos</option>
-          {TIPO_OPTIONS.map(t => <option key={t} value={t}>{TIPO_LABELS[t]}</option>)}
-        </select>
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400 mb-1.5">Tipo</p>
+          <div className="flex flex-wrap gap-2">
+            <FilterChip label="Todos" active={tipo === ''} onClick={() => { setTipo(''); setPage(1) }} />
+            {TIPO_OPTIONS.map(t => (
+              <FilterChip
+                key={t}
+                label={TIPO_LABELS[t]}
+                color={donationTypeColor(t)}
+                active={tipo === t}
+                onClick={() => { setTipo(tipo === t ? '' : t); setPage(1) }}
+              />
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400 mb-1.5">Status</p>
+          <div className="flex flex-wrap gap-2">
+            <FilterChip label="Todos" active={statusFilter === ''} onClick={() => { setStatusFilter(''); setPage(1) }} />
+            {STATUS_OPTIONS.map(s => (
+              <FilterChip
+                key={s}
+                label={STATUS_LABELS[s]}
+                color={statusColor(s)}
+                active={statusFilter === s}
+                onClick={() => { setStatusFilter(statusFilter === s ? '' : s); setPage(1) }}
+              />
+            ))}
+          </div>
+        </div>
       </div>
 
       {loading ? (
@@ -130,28 +192,51 @@ export default function DonationsPage() {
       ) : data?.data?.length === 0 ? (
         <EmptyState icon={Heart} title="Nenhuma doação encontrada" />
       ) : (
-        <div className="card divide-y divide-slate-50">
-          {data?.data?.map((d: any) => (
-            <div key={d.id} className="flex items-center justify-between px-6 py-4 hover:bg-slate-50/50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center">
-                  {d.tipo === 'MONETARY' ? <DollarSign size={16} className="text-green-600" /> : <Package size={16} className="text-blue-600" />}
+        <div className="card divide-y divide-slate-50 overflow-hidden">
+          {data?.data?.map((d: any) => {
+            const tipoCor = donationTypeColor(d.tipo)
+            const statCor = statusColor(d.status)
+            return (
+              <div
+                key={d.id}
+                className="flex items-center justify-between gap-3 px-6 py-4 hover:bg-slate-50/50 transition-colors"
+                style={{ boxShadow: `inset 4px 0 0 ${tipoCor}` }}
+              >
+                <div className="flex items-center gap-4 min-w-0">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: tipoCor + '22', color: tipoCor }}
+                  >
+                    {d.tipo === 'MONETARY' ? <DollarSign size={18} /> : <Package size={18} />}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-800 truncate">{d.doadorNome || 'Doador Anônimo'}</p>
+                    <p className="text-xs text-slate-400 truncate">
+                      {d.campaign?.nome || 'Sem campanha'} · {new Date(d.createdAt).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">{d.doadorNome || 'Doador Anônimo'}</p>
-                  <p className="text-xs text-slate-400">
-                    {d.campaign?.nome || 'Sem campanha'} · {new Date(d.createdAt).toLocaleDateString('pt-BR')}
-                  </p>
+                <div className="flex items-center gap-2 flex-wrap justify-end">
+                  <span
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold"
+                    style={{ backgroundColor: tipoCor + '1f', color: tipoCor }}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: tipoCor }} />
+                    {TIPO_LABELS[d.tipo] || d.tipo}
+                  </span>
+                  <span
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold"
+                    style={{ backgroundColor: statCor + '1f', color: statCor }}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statCor }} />
+                    {STATUS_LABELS[d.status] || d.status}
+                  </span>
+                  {d.valor ? <p className="font-bold text-slate-900 text-sm whitespace-nowrap">{fmtBRL(d.valor)}</p>
+                    : d.descricao ? <p className="text-xs text-slate-600 max-w-[180px] truncate">{d.descricao}</p> : null}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <StatusBadge status={d.tipo} />
-                <StatusBadge status={d.status} />
-                {d.valor && <p className="font-bold text-slate-900 text-sm">{fmtBRL(d.valor)}</p>}
-                {d.descricao && !d.valor && <p className="text-sm text-slate-600">{d.descricao}</p>}
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
