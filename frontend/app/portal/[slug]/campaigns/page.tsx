@@ -12,7 +12,7 @@ interface PortalCampaignsProps { params: { slug: string } }
 const fmtBRL = (n: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(n)
 
 const badges = [
-  'bg-emerald-100 text-emerald-700',
+  'bg-brand-100 text-brand-700',
   'bg-sky-100 text-sky-700',
   'bg-purple-100 text-purple-700',
 ]
@@ -84,10 +84,10 @@ export default function PortalCampaignsPage({ params }: PortalCampaignsProps) {
     <div className="min-h-screen bg-white text-slate-800">
       <PortalNav slug={slug} orgName={org?.name} />
 
-      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 text-white">
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-600 via-brand-500 to-brand-400 text-white">
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
         <div className="relative max-w-6xl mx-auto px-6 py-20 text-center">
-          <p className="text-sm uppercase tracking-[0.5em] text-emerald-100 mb-4">Campanhas</p>
+          <p className="text-sm uppercase tracking-[0.5em] text-brand-100 mb-4">Campanhas</p>
           <h1 className="text-4xl md:text-5xl font-black leading-tight mb-4">Campanhas abertas para voluntariado</h1>
           <p className="max-w-3xl mx-auto text-white/80">Escolha uma causa, conheça a campanha e manifeste sua vontade de ajudar. Todas as intenções ficam disponíveis para análise dos coordenadores.</p>
           <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -104,7 +104,7 @@ export default function PortalCampaignsPage({ params }: PortalCampaignsProps) {
       <section className="max-w-6xl mx-auto px-6 py-16 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-emerald-500">Campanhas em destaque</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-brand-500">Campanhas em destaque</p>
             <h2 className="text-3xl font-black">Encontre onde quer ajudar</h2>
           </div>
           <Link href={`/portal/${slug}/leaderboard`} className="text-slate-500 text-sm flex items-center gap-1 font-medium">
@@ -144,7 +144,7 @@ export default function PortalCampaignsPage({ params }: PortalCampaignsProps) {
                   </div>
                 </div>
                 <button
-                  className="w-full border-t border-slate-100 text-sm font-semibold text-emerald-600 py-3"
+                  className="w-full border-t border-slate-100 text-sm font-semibold text-brand-600 py-3"
                   onClick={() => openDetail(campaign)}
                 >
                   Ver detalhes e se cadastrar
@@ -159,7 +159,7 @@ export default function PortalCampaignsPage({ params }: PortalCampaignsProps) {
         {selected && (
           <div className="space-y-6">
             <div className="space-y-3">
-              <p className="text-sm uppercase tracking-[0.4em] text-emerald-500">{selected.status === 'ACTIVE' ? 'Aberta' : selected.status}</p>
+              <p className="text-sm uppercase tracking-[0.4em] text-brand-500">{selected.status === 'ACTIVE' ? 'Aberta' : selected.status}</p>
               <h3 className="text-2xl font-black text-slate-900">{selected.nome}</h3>
               <p className="text-slate-600">{selected.descricao || 'Sem descrição adicional.'}</p>
               <div className="grid grid-cols-2 gap-4 text-sm text-slate-500">
@@ -190,7 +190,7 @@ export default function PortalCampaignsPage({ params }: PortalCampaignsProps) {
                 <input value={interestForm.profissao} placeholder="Profissão" className="input" onChange={e => setInterestForm(f => ({ ...f, profissao: e.target.value }))} />
                 <textarea value={interestForm.mensagem} placeholder="Mensagem" className="input col-span-2" rows={3} onChange={e => setInterestForm(f => ({ ...f, mensagem: e.target.value }))} />
               </div>
-              {feedback && <p className="text-sm text-white bg-emerald-600 rounded-2xl px-4 py-2">{feedback}</p>}
+              {feedback && <p className="text-sm text-white bg-brand-600 rounded-2xl px-4 py-2">{feedback}</p>}
               <button className="btn-primary w-full" disabled={submitting}>{submitting ? 'Enviando...' : 'Registrar intenção de voluntariado'}</button>
             </form>
           </div>

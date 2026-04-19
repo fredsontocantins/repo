@@ -99,7 +99,7 @@ function TrendChart({ data }: { data?: { label: string; payables: number; receiv
             <div key={point.label} className="flex flex-col items-center gap-2 flex-1">
               <div className="flex items-end gap-1 w-full h-24">
                 <div className="w-2 bg-red-400 rounded-t-lg" style={{ height: `${heightPay}%` }} />
-                <div className="w-2 bg-emerald-400 rounded-t-lg" style={{ height: `${heightRec}%` }} />
+                <div className="w-2 bg-brand-400 rounded-t-lg" style={{ height: `${heightRec}%` }} />
               </div>
               <span className="text-xs text-slate-400">{point.label}</span>
             </div>
@@ -108,7 +108,7 @@ function TrendChart({ data }: { data?: { label: string; payables: number; receiv
       </div>
       <div className="flex items-center justify-between text-xs text-slate-500">
         <span className="flex items-center gap-1"><span className="w-2 h-2 bg-red-400 rounded-full" />Pagar</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 bg-emerald-400 rounded-full" />Receber</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 bg-brand-400 rounded-full" />Receber</span>
       </div>
     </div>
   )
@@ -176,7 +176,7 @@ function HorizonCards({ data }: { data?: { days: number; payables: number; recei
           <p className="text-sm text-slate-400 mt-1">A pagar</p>
           <p className="text-lg font-bold text-red-600 mb-1">{fmtBRL(item.payables)}</p>
           <p className="text-sm text-slate-400">A receber</p>
-          <p className="text-lg font-bold text-emerald-600">{fmtBRL(item.receivables)}</p>
+          <p className="text-lg font-bold text-brand-600">{fmtBRL(item.receivables)}</p>
         </div>
       ))}
     </div>
@@ -439,7 +439,7 @@ export default function FinancePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <ExecStat label="Caixa disponível" value={fmtBRL(exec.cashOnHand || 0)} sub="Recebido − Pago" accent="text-slate-900" />
               <ExecStat label="Fluxo líquido (30d)" value={fmtBRL(exec.netFlowLast30 || 0)}
-                sub="Receitas − pagamentos" accent={exec.netFlowLast30 >= 0 ? 'text-emerald-600' : 'text-red-600'} />
+                sub="Receitas − pagamentos" accent={exec.netFlowLast30 >= 0 ? 'text-brand-600' : 'text-red-600'} />
               <ExecStat label="Runway" value={exec.runwayDays === null ? '> 365 dias' : `${exec.runwayDays} dias`}
                 sub={exec.runRisk ? 'Atenção: fluxo apertado' : 'Estável'} accent={exec.runRisk ? 'text-orange-600' : 'text-slate-900'} />
               <ExecStat label="Cobertura de recebíveis" value={formatPercent(exec.receivableCoverage)} sub="Planejado vs. recebido" />
@@ -451,7 +451,7 @@ export default function FinancePage() {
             <div className="space-y-4">
               <div className="card p-5 space-y-3">
                 <h3 className="section-title text-sm">Orçamento vs Realizado</h3>
-                {[['payables', 'Contas a pagar', 'bg-red-500'], ['receivables', 'Contas a receber', 'bg-emerald-500']].map(([key, label, barColor]) => {
+                {[['payables', 'Contas a pagar', 'bg-red-500'], ['receivables', 'Contas a receber', 'bg-brand-500']].map(([key, label, barColor]) => {
                   const config = key === 'payables' ? budget?.payables : budget?.receivables
                   const planned = config?.planned || 0
                   const actual = config?.actual || 0
