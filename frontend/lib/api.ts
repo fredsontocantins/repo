@@ -171,6 +171,7 @@ export const api = {
 
   // Campaign interests (admin)
   getCampaignInterests: (params?: Record<string, any>) => request<any>(`/campaign-interests${qs(params)}`),
+  getCampaignInterestStats: () => request<any>('/campaign-interests/stats'),
   approveCampaignInterest: (id: number) => request<any>(`/campaign-interests/${id}/approve`, { method: 'PUT' }),
   rejectCampaignInterest: (id: number, motivo: string) =>
     request<any>(`/campaign-interests/${id}/reject`, { method: 'PUT', body: JSON.stringify({ motivo }) }),

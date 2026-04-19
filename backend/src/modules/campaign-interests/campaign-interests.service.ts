@@ -36,6 +36,20 @@ export class CampaignInterestsService {
     return { data, total, page, totalPages: Math.ceil(total / limit) }
   }
 
+  async stats(orgId: number) {
+    const grouped = await this.prisma.campaignInterest.groupBy({
+      by: ['status'],
+      where: { organizationId: orgId },
+      _count: { _all: true },
+    })
+    const out = { total: 0, PENDING: 0, APPROVED: 0, REJECTED: 0 } as Record<string, number>
+    for (const g of grouped) {
+      out[g.status] = g._count._all
+      out.total += g._count._all
+    }
+    return out
+  }
+
   async getById(orgId: number, id: number) {
     const interest = await this.prisma.campaignInterest.findFirst({
       where: { id, organizationId: orgId },

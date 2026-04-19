@@ -20,6 +20,12 @@ export class CampaignInterestsController {
     return this.service.list(user.orgId!, { status, campaignId, page, limit })
   }
 
+  @Get('stats')
+  @Roles(UserRole.COORDINATOR, UserRole.ADMIN)
+  async stats(@CurrentUser() user: AuthenticatedUser) {
+    return this.service.stats(user.orgId!)
+  }
+
   @Get(':id')
   @Roles(UserRole.COORDINATOR, UserRole.ADMIN)
   async detail(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseIntPipe) id: number) {

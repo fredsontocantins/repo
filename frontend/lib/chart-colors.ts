@@ -113,3 +113,11 @@ export const VOLUNTEER_STATUS_STYLE: Record<string, StatusStyle> = {
 }
 
 export const VOLUNTEER_STATUS_ORDER = ['ACTIVE', 'PENDING', 'INACTIVE', 'SUSPENDED'] as const
+
+export const INTEREST_STATUS_STYLE: Record<string, StatusStyle> = {
+  PENDING:  { label: 'Pendente',  bar: '#f59e0b', bg: '#fef3c7', text: '#92400e' },
+  APPROVED: { label: 'Aprovado',  bar: '#16a34a', bg: '#ecfdf5', text: '#166534' },
+  REJECTED: { label: 'Rejeitado', bar: '#dc2626', bg: '#fee2e2', text: '#991b1b' },
+}
+
+export const INTEREST_STATUS_ORDER = ['PENDING', 'APPROVED', 'REJECTED'] as const
