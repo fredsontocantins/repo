@@ -15,20 +15,33 @@ import { CHART_AXIS, CHART_TOOLTIP_STYLE, FINANCE_FLOW_COLOR } from '@/lib/chart
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const PAY_STATUS_CFG: Record<string, { label: string; icon: any; bg: string; text: string; border: string; dot: string }> = {
-  A_PAGAR:   { label: 'A Pagar',   icon: Clock,        bg: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-200',   dot: 'bg-blue-500' },
-  PAGO:      { label: 'Pago',      icon: CheckCircle2, bg: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-200',  dot: 'bg-green-500' },
-  VENCIDO:   { label: 'Vencido',   icon: AlertTriangle,bg: 'bg-red-50',    text: 'text-red-700',    border: 'border-red-200',    dot: 'bg-red-500' },
-  CANCELADO: { label: 'Cancelado', icon: XCircle,      bg: 'bg-slate-100', text: 'text-slate-500',  border: 'border-slate-200',  dot: 'bg-slate-400' },
-  ESTORNADO: { label: 'Estornado', icon: RotateCcw,    bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-500' },
+type FinanceStatusCfg = {
+  label: string
+  icon: any
+  bg: string
+  text: string
+  border: string
+  dot: string
+  /** strong hex for the row left stripe + active chip fill */
+  stripe: string
+  /** soft hex for the row background tint */
+  tint: string
 }
 
-const REC_STATUS_CFG: Record<string, { label: string; icon: any; bg: string; text: string; border: string; dot: string }> = {
-  A_RECEBER: { label: 'A Receber', icon: Clock,        bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', dot: 'bg-indigo-500' },
-  RECEBIDO:  { label: 'Recebido',  icon: CheckCircle2, bg: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-200',  dot: 'bg-green-500' },
-  VENCIDO:   { label: 'Vencido',   icon: AlertTriangle,bg: 'bg-red-50',    text: 'text-red-700',    border: 'border-red-200',    dot: 'bg-red-500' },
-  CANCELADO: { label: 'Cancelado', icon: XCircle,      bg: 'bg-slate-100', text: 'text-slate-500',  border: 'border-slate-200',  dot: 'bg-slate-400' },
-  ESTORNADO: { label: 'Estornado', icon: RotateCcw,    bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-500' },
+const PAY_STATUS_CFG: Record<string, FinanceStatusCfg> = {
+  A_PAGAR:   { label: 'A Pagar',   icon: Clock,        bg: 'bg-blue-50',   text: 'text-blue-700',   border: 'border-blue-200',   dot: 'bg-blue-500',   stripe: '#3b82f6', tint: '#eff6ff' },
+  PAGO:      { label: 'Pago',      icon: CheckCircle2, bg: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-200',  dot: 'bg-green-500',  stripe: '#16a34a', tint: '#f0fdf4' },
+  VENCIDO:   { label: 'Vencido',   icon: AlertTriangle,bg: 'bg-red-50',    text: 'text-red-700',    border: 'border-red-200',    dot: 'bg-red-500',    stripe: '#dc2626', tint: '#fef2f2' },
+  CANCELADO: { label: 'Cancelado', icon: XCircle,      bg: 'bg-slate-100', text: 'text-slate-500',  border: 'border-slate-200',  dot: 'bg-slate-400',  stripe: '#94a3b8', tint: '#f8fafc' },
+  ESTORNADO: { label: 'Estornado', icon: RotateCcw,    bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-500', stripe: '#f97316', tint: '#fff7ed' },
+}
+
+const REC_STATUS_CFG: Record<string, FinanceStatusCfg> = {
+  A_RECEBER: { label: 'A Receber', icon: Clock,        bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', dot: 'bg-indigo-500', stripe: '#6366f1', tint: '#eef2ff' },
+  RECEBIDO:  { label: 'Recebido',  icon: CheckCircle2, bg: 'bg-green-50',  text: 'text-green-700',  border: 'border-green-200',  dot: 'bg-green-500',  stripe: '#16a34a', tint: '#f0fdf4' },
+  VENCIDO:   { label: 'Vencido',   icon: AlertTriangle,bg: 'bg-red-50',    text: 'text-red-700',    border: 'border-red-200',    dot: 'bg-red-500',    stripe: '#dc2626', tint: '#fef2f2' },
+  CANCELADO: { label: 'Cancelado', icon: XCircle,      bg: 'bg-slate-100', text: 'text-slate-500',  border: 'border-slate-200',  dot: 'bg-slate-400',  stripe: '#94a3b8', tint: '#f8fafc' },
+  ESTORNADO: { label: 'Estornado', icon: RotateCcw,    bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-500', stripe: '#f97316', tint: '#fff7ed' },
 }
 
 const PAY_CATS: Record<string, string> = {
@@ -657,17 +670,24 @@ export default function FinancePage() {
             <div className="flex gap-2 flex-wrap">
               {['', 'A_PAGAR', 'VENCIDO', 'PAGO', 'CANCELADO', 'ESTORNADO'].map(s => {
                 const cfg = s ? PAY_STATUS_CFG[s] : null
+                const active = payStatus === s
                 return (
                   <button key={s} onClick={() => { setPayStatus(s); setPage(1) }}
-                    className={clsx('text-xs px-3 py-1.5 rounded-lg font-semibold border transition-all',
-                      payStatus === s
-                        ? (cfg ? clsx(cfg.bg, cfg.text, cfg.border) : 'bg-slate-800 text-white border-slate-800')
-                        : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50')}>
+                    className={clsx('text-xs px-3 py-1.5 rounded-full font-semibold border transition-all inline-flex items-center gap-1.5',
+                      active && !cfg && 'bg-brand-600 text-white border-brand-600',
+                      !active && 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50')}
+                    style={active && cfg ? { backgroundColor: cfg.stripe, color: '#fff', borderColor: cfg.stripe } : cfg ? { color: cfg.stripe, borderColor: cfg.stripe + '55' } : undefined}>
                     {cfg ? (
-                      <span className="flex items-center gap-1.5">
-                        <span className={clsx('w-1.5 h-1.5 rounded-full', cfg.dot)} />{cfg.label}
-                      </span>
-                    ) : 'Todos'}
+                      <>
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: active ? '#fff' : cfg.stripe }} />
+                        {cfg.label}
+                      </>
+                    ) : (
+                      <>
+                        <span className={clsx('w-1.5 h-1.5 rounded-full', active ? 'bg-white' : 'bg-slate-400')} />
+                        Todos
+                      </>
+                    )}
                   </button>
                 )
               })}
@@ -692,11 +712,13 @@ export default function FinancePage() {
                     ))
                   ) : payables?.data?.length === 0 ? (
                     <tr><td colSpan={8} className="px-4 py-12 text-center text-slate-400">Nenhuma conta a pagar encontrada</td></tr>
-                  ) : payables?.data?.map((p: any) => (
-                    <tr key={p.id} className={clsx('border-b border-slate-50 hover:bg-slate-50/60 transition-colors',
-                      p.status === 'VENCIDO' && 'bg-red-50/30',
-                      p.status === 'PAGO' && 'bg-green-50/20',
-                      ['CANCELADO', 'ESTORNADO'].includes(p.status) && 'opacity-60')}>
+                  ) : payables?.data?.map((p: any) => {
+                    const rowCfg = PAY_STATUS_CFG[p.status]
+                    return (
+                    <tr key={p.id}
+                      className={clsx('border-b border-slate-50 hover:bg-slate-50/60 transition-colors',
+                        ['CANCELADO', 'ESTORNADO'].includes(p.status) && 'opacity-70')}
+                      style={rowCfg ? { boxShadow: `inset 4px 0 0 ${rowCfg.stripe}`, backgroundColor: rowCfg.tint } : undefined}>
                       <td className="px-4 py-3"><StatusPill status={p.status} cfg={PAY_STATUS_CFG} /></td>
                       <td className="px-4 py-3">
                         <p className="text-sm font-semibold text-slate-800">{p.descricao}</p>
@@ -717,7 +739,7 @@ export default function FinancePage() {
                       </td>
                       <td className="px-4 py-3"><PayableActions row={p} onAction={onAction} /></td>
                     </tr>
-                  ))}
+                  )})}
                 </tbody>
               </table>
             </div>
@@ -745,17 +767,24 @@ export default function FinancePage() {
             <div className="flex gap-2 flex-wrap">
               {['', 'A_RECEBER', 'VENCIDO', 'RECEBIDO', 'CANCELADO', 'ESTORNADO'].map(s => {
                 const cfg = s ? REC_STATUS_CFG[s] : null
+                const active = recStatus === s
                 return (
                   <button key={s} onClick={() => { setRecStatus(s); setPage(1) }}
-                    className={clsx('text-xs px-3 py-1.5 rounded-lg font-semibold border transition-all',
-                      recStatus === s
-                        ? (cfg ? clsx(cfg.bg, cfg.text, cfg.border) : 'bg-slate-800 text-white border-slate-800')
-                        : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50')}>
+                    className={clsx('text-xs px-3 py-1.5 rounded-full font-semibold border transition-all inline-flex items-center gap-1.5',
+                      active && !cfg && 'bg-brand-600 text-white border-brand-600',
+                      !active && 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50')}
+                    style={active && cfg ? { backgroundColor: cfg.stripe, color: '#fff', borderColor: cfg.stripe } : cfg ? { color: cfg.stripe, borderColor: cfg.stripe + '55' } : undefined}>
                     {cfg ? (
-                      <span className="flex items-center gap-1.5">
-                        <span className={clsx('w-1.5 h-1.5 rounded-full', cfg.dot)} />{cfg.label}
-                      </span>
-                    ) : 'Todos'}
+                      <>
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: active ? '#fff' : cfg.stripe }} />
+                        {cfg.label}
+                      </>
+                    ) : (
+                      <>
+                        <span className={clsx('w-1.5 h-1.5 rounded-full', active ? 'bg-white' : 'bg-slate-400')} />
+                        Todos
+                      </>
+                    )}
                   </button>
                 )
               })}
@@ -779,11 +808,13 @@ export default function FinancePage() {
                     ))
                   ) : receivables?.data?.length === 0 ? (
                     <tr><td colSpan={8} className="px-4 py-12 text-center text-slate-400">Nenhuma conta a receber encontrada</td></tr>
-                  ) : receivables?.data?.map((r: any) => (
-                    <tr key={r.id} className={clsx('border-b border-slate-50 hover:bg-slate-50/60 transition-colors',
-                      r.status === 'VENCIDO' && 'bg-red-50/30',
-                      r.status === 'RECEBIDO' && 'bg-green-50/20',
-                      ['CANCELADO', 'ESTORNADO'].includes(r.status) && 'opacity-60')}>
+                  ) : receivables?.data?.map((r: any) => {
+                    const rowCfg = REC_STATUS_CFG[r.status]
+                    return (
+                    <tr key={r.id}
+                      className={clsx('border-b border-slate-50 hover:bg-slate-50/60 transition-colors',
+                        ['CANCELADO', 'ESTORNADO'].includes(r.status) && 'opacity-70')}
+                      style={rowCfg ? { boxShadow: `inset 4px 0 0 ${rowCfg.stripe}`, backgroundColor: rowCfg.tint } : undefined}>
                       <td className="px-4 py-3"><StatusPill status={r.status} cfg={REC_STATUS_CFG} /></td>
                       <td className="px-4 py-3">
                         <p className="text-sm font-semibold text-slate-800">{r.descricao}</p>
@@ -804,7 +835,7 @@ export default function FinancePage() {
                       </td>
                       <td className="px-4 py-3"><ReceivableActions row={r} onAction={onAction} /></td>
                     </tr>
-                  ))}
+                  )})}
                 </tbody>
               </table>
             </div>

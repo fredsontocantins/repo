@@ -4,8 +4,10 @@ import Link from 'next/link'
 import { Calendar, Plus, MapPin, Users, Clock, UserPlus, Trash2, Sparkles, ArrowRight } from 'lucide-react'
 import { api } from '@/lib/api'
 import StatusBadge from '@/components/ui/StatusBadge'
+import StatusFilterChips from '@/components/ui/StatusFilterChips'
 import Modal from '@/components/ui/Modal'
 import EmptyState from '@/components/ui/EmptyState'
+import { EVENT_STATUS_STYLE, EVENT_STATUS_ORDER } from '@/lib/chart-colors'
 
 export default function EventsPage() {
   const [data, setData] = useState<any>(null)
@@ -25,11 +27,9 @@ export default function EventsPage() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const params: any = {}
-      if (status) params.status = status
-      setData(await api.getEvents(params))
+      setData(await api.getEvents({ limit: 200 }))
     } finally { setLoading(false) }
-  }, [status])
+  }, [])
 
   useEffect(() => { load() }, [load])
 
@@ -117,22 +117,20 @@ export default function EventsPage() {
     finally { setSaving(false) }
   }
 
-  const statusColor: Record<string, string> = {
-    SCHEDULED: 'border-t-blue-400',
-    ONGOING: 'border-t-green-500',
-    COMPLETED: 'border-t-slate-400',
-    CANCELLED: 'border-t-red-400',
-  }
-
   const eventCandidateVolunteers = eventVolunteerOptions.filter(vol => !eventAssignedVolunteers.some(av => av.volunteer?.id === vol.id))
 
-  const counts = useMemo(() => ({
-    total: data?.total ?? 0,
-    scheduled: data?.data?.filter((ev: any) => ev.status === 'SCHEDULED').length ?? 0,
-    ongoing: data?.data?.filter((ev: any) => ev.status === 'ONGOING').length ?? 0,
-    completed: data?.data?.filter((ev: any) => ev.status === 'COMPLETED').length ?? 0,
-    cancelled: data?.data?.filter((ev: any) => ev.status === 'CANCELLED').length ?? 0,
-  }), [data])
+  const countsByStatus = useMemo(() => {
+    const acc: Record<string, number> = { SCHEDULED: 0, ONGOING: 0, COMPLETED: 0, CANCELLED: 0 }
+    data?.data?.forEach((ev: any) => { if (acc[ev.status] !== undefined) acc[ev.status] += 1 })
+    return acc
+  }, [data])
+
+  const totalCount = data?.data?.length ?? 0
+
+  const filteredEvents = useMemo(() => {
+    if (!status) return data?.data ?? []
+    return (data?.data ?? []).filter((ev: any) => ev.status === status)
+  }, [data, status])
 
   return (
     <div className="space-y-6">
@@ -155,74 +153,85 @@ export default function EventsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {['SCHEDULED', 'ONGOING', 'COMPLETED', 'CANCELLED'].map(statusKey => (
-          <button
-            key={statusKey}
-            className={`card p-4 text-left transition border ${status === statusKey ? 'border-pink-400 bg-[rgba(255,111,181,0.1)]' : 'border-transparent hover:border-white/30'}`}
-            onClick={() => setStatus(status === statusKey ? '' : statusKey)}
-          >
-            <p className="text-[10px] uppercase tracking-[0.4em] text-muted">{statusKey === 'SCHEDULED' ? 'Agendados' : statusKey === 'ONGOING' ? 'Em curso' : statusKey === 'COMPLETED' ? 'Concluídos' : 'Cancelados'}</p>
-            <p className="text-2xl font-semibold mt-2 text-white">{counts[statusKey.toLowerCase()] ?? 0}</p>
-          </button>
-        ))}
+      <div className="card p-4">
+        <StatusFilterChips
+          styles={EVENT_STATUS_STYLE}
+          order={EVENT_STATUS_ORDER}
+          counts={countsByStatus}
+          total={totalCount}
+          value={status}
+          onChange={setStatus}
+          allLabel="Todos"
+        />
       </div>
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => <div key={i} className="card h-48 animate-pulse" />)}
         </div>
-      ) : data?.data?.length === 0 ? (
-        <EmptyState icon={Calendar} title="Nenhum evento encontrado" description="Crie o primeiro evento da organização." />
+      ) : filteredEvents.length === 0 ? (
+        <EmptyState
+          icon={Calendar}
+          title={status ? `Nenhum evento ${EVENT_STATUS_STYLE[status]?.label.toLowerCase() ?? ''}` : 'Nenhum evento encontrado'}
+          description={status ? 'Tente outro filtro ou crie um novo evento.' : 'Crie o primeiro evento da organização.'}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {data?.data?.map((ev: any) => (
-            <div key={ev.id} className={`card relative overflow-hidden border-l-4 ${statusColor[ev.status] || 'border-l-slate-200'}`}>
-              <div className="absolute inset-0 gradient-accent opacity-0 hover:opacity-70 transition" />
-              <div className="relative space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">{ev.nome}</h3>
-                  <StatusBadge status={ev.status} />
-                </div>
-                {ev.descricao && <p className="text-sm text-muted line-clamp-2">{ev.descricao}</p>}
-                <div className="space-y-2 text-xs text-muted">
-                  {ev.local && (
-                    <div className="flex items-center gap-2">
-                      <MapPin size={12} />
-                      <span>{ev.local}</span>
+          {filteredEvents.map((ev: any) => {
+            const s = EVENT_STATUS_STYLE[ev.status] ?? EVENT_STATUS_STYLE.SCHEDULED
+            return (
+              <div
+                key={ev.id}
+                className="card relative overflow-hidden group transition hover:-translate-y-0.5"
+                style={{ borderTop: `4px solid ${s.bar}` }}
+              >
+                <div
+                  className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-40 pointer-events-none"
+                  style={{ backgroundColor: s.bg }}
+                />
+                <div className="relative p-5 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Calendar size={18} style={{ color: s.bar }} />
+                      <h3 className="text-base font-semibold text-slate-900 truncate">{ev.nome}</h3>
                     </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <Clock size={12} />
-                    <span>{new Date(ev.dataInicio).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}</span>
+                    <span
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap"
+                      style={{ backgroundColor: s.bg, color: s.text }}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.bar }} />
+                      {s.label}
+                    </span>
                   </div>
-                  {ev.capacidade && (
-                    <div className="flex items-center gap-2">
-                      <Users size={12} />
-                      <span>{ev._count?.registrations ?? 0}/{ev.capacidade} inscritos</span>
-                    </div>
-                  )}
-                </div>
-                {ev.campaign && (
-                  <div className="text-xs text-accent-light">
-                    Campanha: {ev.campaign.nome}
+                  {ev.descricao && <p className="text-sm text-slate-500 line-clamp-2">{ev.descricao}</p>}
+                  <div className="space-y-1.5 text-xs text-slate-600">
+                    {ev.local && (
+                      <div className="flex items-center gap-2"><MapPin size={12} className="text-slate-400" /><span>{ev.local}</span></div>
+                    )}
+                    <div className="flex items-center gap-2"><Clock size={12} className="text-slate-400" /><span>{new Date(ev.dataInicio).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}</span></div>
+                    {ev.capacidade && (
+                      <div className="flex items-center gap-2"><Users size={12} className="text-slate-400" /><span>{ev._count?.registrations ?? 0}/{ev.capacidade} inscritos</span></div>
+                    )}
                   </div>
-                )}
-                <div className="flex items-center gap-2 pt-3 border-t border-white/10 text-xs">
-                  <button
-                    type="button"
-                    className="btn-outline text-[11px] flex items-center gap-2"
-                    onClick={() => openEventAssignmentModal(ev)}
-                  >
-                    <UserPlus size={14} /> Voluntários
-                  </button>
-                  <Link href={`/events/${ev.id}`} className="flex items-center gap-1 text-accent-light">
-                    Detalhes <ArrowRight size={14} />
-                  </Link>
+                  {ev.campaign && (
+                    <div className="text-xs" style={{ color: s.bar }}>Campanha: {ev.campaign.nome}</div>
+                  )}
+                  <div className="flex items-center gap-3 pt-3 border-t border-slate-100 text-xs">
+                    <button
+                      type="button"
+                      className="btn-outline text-[11px] flex items-center gap-2 px-3 py-1"
+                      onClick={() => openEventAssignmentModal(ev)}
+                    >
+                      <UserPlus size={14} /> Voluntários
+                    </button>
+                    <Link href={`/events/${ev.id}`} className="flex items-center gap-1 font-semibold" style={{ color: s.bar }}>
+                      Detalhes <ArrowRight size={14} />
+                    </Link>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
