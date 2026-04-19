@@ -2,11 +2,12 @@
 import { useEffect, useState } from 'react'
 import { LucideIcon, Users, Megaphone, Heart, Calendar, TrendingUp, Clock, Award, Sparkles, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
 import StatCard from '@/components/ui/StatCard'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
 import { hasModuleAccess, type ModuleKey } from '@/lib/permissions'
+import { CHART_AXIS, CHART_TOOLTIP_STYLE, SERIES_COLOR, STATUS_COLOR } from '@/lib/chart-colors'
 
 const mockMonthly = [
   { mes: 'Out', voluntarios: 42, doacoes: 8500 },
@@ -16,8 +17,6 @@ const mockMonthly = [
   { mes: 'Fev', voluntarios: 74, doacoes: 18500 },
   { mes: 'Mar', voluntarios: 89, doacoes: 22000 },
 ]
-
-const COLORS = ['#22518a', '#5e8abb']
 
 export default function DashboardPage() {
   const { user } = useAuthStore()
@@ -103,61 +102,74 @@ export default function DashboardPage() {
         <div className="xl:col-span-2 card p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="section-title text-white">Crescimento Mensal</h2>
-              <p className="text-muted text-xs mt-0.5">Voluntários x arrecadação (6 meses)</p>
+              <h2 className="section-title">Crescimento Mensal</h2>
+              <p className="text-slate-500 text-xs mt-0.5">Voluntários x arrecadação (6 meses)</p>
             </div>
             <span className="pill">Últimos 6 meses</span>
           </div>
-          <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={mockMonthly} margin={{ top: 0, right: 12, left: 0, bottom: 0 }}>
+          <ResponsiveContainer width="100%" height={260}>
+            <AreaChart data={mockMonthly} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="gVol" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="rgba(255, 111, 181, 0.7)" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="rgba(255, 111, 181, 0.1)" stopOpacity={0} />
+                  <stop offset="5%" stopColor={SERIES_COLOR.volunteers} stopOpacity={0.35} />
+                  <stop offset="95%" stopColor={SERIES_COLOR.volunteers} stopOpacity={0.02} />
                 </linearGradient>
                 <linearGradient id="gDoa" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="rgba(116, 192, 255, 0.7)" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="rgba(116, 192, 255, 0.1)" stopOpacity={0} />
+                  <stop offset="5%" stopColor={SERIES_COLOR.donations} stopOpacity={0.35} />
+                  <stop offset="95%" stopColor={SERIES_COLOR.donations} stopOpacity={0.02} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="2 2" stroke="rgba(255,255,255,0.08)" />
-              <XAxis dataKey="mes" stroke="rgba(255,255,255,0.4)" tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.65)' }} />
-              <YAxis stroke="rgba(255,255,255,0.4)" tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.65)' }} />
-              <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: '#0f172a', color: '#fff' }} />
-              <Area type="monotone" dataKey="voluntarios" stroke="var(--pink)" strokeWidth={3} fill="url(#gVol)" name="Voluntários" />
-              <Area type="monotone" dataKey="doacoes" stroke="var(--blue)" strokeWidth={3} fill="url(#gDoa)" name="Doações (R$)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_AXIS.grid} />
+              <XAxis dataKey="mes" stroke={CHART_AXIS.tick} tick={{ fontSize: CHART_AXIS.tickFontSize, fill: CHART_AXIS.tick }} tickLine={false} axisLine={false} />
+              <YAxis stroke={CHART_AXIS.tick} tick={{ fontSize: CHART_AXIS.tickFontSize, fill: CHART_AXIS.tick }} tickLine={false} axisLine={false} />
+              <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '3 3' }} />
+              <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+              <Area type="monotone" dataKey="voluntarios" stroke={SERIES_COLOR.volunteers} strokeWidth={3} fill="url(#gVol)" name="Voluntários" dot={{ r: 3, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 5 }} />
+              <Area type="monotone" dataKey="doacoes" stroke={SERIES_COLOR.donations} strokeWidth={3} fill="url(#gDoa)" name="Doações (R$)" dot={{ r: 3, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 5 }} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
         <div className="card p-6">
-          <h2 className="section-title text-white mb-1">Status das campanhas</h2>
-          <p className="text-muted text-xs mb-4">Distribuição entre abertas e concluídas</p>
-          <div className="flex justify-center">
-            <PieChart width={180} height={180}>
-              <Pie data={[
-                { name: 'Ativas', value: stats?.campaigns?.active ?? 3 },
-                { name: 'Concluídas', value: (stats?.campaigns?.total ?? 5) - (stats?.campaigns?.active ?? 3) },
-              ]} cx={90} cy={90} innerRadius={50} outerRadius={80} paddingAngle={4} dataKey="value">
-                <Cell fill="var(--pink)" />
-                <Cell fill="var(--blue)" />
-              </Pie>
-              <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', background: '#0f172a', color: '#fff' }} />
-            </PieChart>
-          </div>
-          <div className="space-y-3 mt-2">
-            {[
-              { label: 'Ativas', value: stats?.campaigns?.active ?? 3, color: 'var(--pink)' },
-              { label: 'Concluídas', value: (stats?.campaigns?.total ?? 5) - (stats?.campaigns?.active ?? 3), color: 'var(--blue)' },
-            ].map(item => (
-              <div key={item.label} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-sm text-muted">{item.label}</span>
+          <h2 className="section-title mb-1">Status das campanhas</h2>
+          <p className="text-slate-500 text-xs mb-4">Distribuição por situação</p>
+          {(() => {
+            const active = stats?.campaigns?.active ?? 0
+            const total = stats?.campaigns?.total ?? 0
+            const paused = stats?.campaigns?.paused ?? 0
+            const cancelled = stats?.campaigns?.cancelled ?? 0
+            const completed = Math.max(0, total - active - paused - cancelled)
+            const slices = [
+              { key: 'ACTIVE', label: 'Ativas', value: active },
+              { key: 'COMPLETED', label: 'Concluídas', value: completed },
+              { key: 'PAUSED', label: 'Pausadas', value: paused },
+              { key: 'CANCELLED', label: 'Canceladas', value: cancelled },
+            ].filter(s => s.value > 0)
+            const hasData = slices.length > 0
+            const display = hasData ? slices : [{ key: 'DRAFT', label: 'Sem dados', value: 1 }]
+            return (
+              <>
+                <div className="flex justify-center">
+                  <PieChart width={180} height={180}>
+                    <Pie data={display} cx={90} cy={90} innerRadius={50} outerRadius={80} paddingAngle={4} dataKey="value" stroke="#fff" strokeWidth={2}>
+                      {display.map(s => <Cell key={s.key} fill={STATUS_COLOR[s.key] ?? '#94a3b8'} />)}
+                    </Pie>
+                    {hasData && <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />}
+                  </PieChart>
                 </div>
-                <span className="text-sm font-semibold">{item.value}</span>
-              </div>
-            ))}
-          </div>
+                <div className="space-y-2 mt-3">
+                  {(hasData ? slices : []).map(item => (
+                    <div key={item.key} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: STATUS_COLOR[item.key] }} />
+                        <span className="text-sm text-slate-600">{item.label}</span>
+                      </div>
+                      <span className="text-sm font-semibold text-slate-900">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )
+          })()}
         </div>
       </div>
 
