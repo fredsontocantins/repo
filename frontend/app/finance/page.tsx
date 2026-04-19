@@ -6,10 +6,12 @@ import {
   CreditCard, ArrowDownCircle, ArrowUpCircle, DollarSign,
   Calendar, Search, Filter, RefreshCw
 } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts'
 import { api } from '@/lib/api'
 import Modal from '@/components/ui/Modal'
 import { clsx } from 'clsx'
 import { fmtBRL } from '@/lib/format'
+import { CHART_AXIS, CHART_TOOLTIP_STYLE, FINANCE_FLOW_COLOR } from '@/lib/chart-colors'
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -84,53 +86,61 @@ const formatPercent = (value?: number) => (value !== undefined ? `${Math.round(v
 
 function TrendChart({ data }: { data?: { label: string; payables: number; receivables: number; net: number }[] }) {
   if (!data) return null
-  const maxAmount = Math.max(...data.map(d => Math.max(d.payables, d.receivables)), 1)
   return (
     <div className="card p-5 space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="section-title text-sm">Fluxo de caixa • últimos 6 meses</h3>
-        <span className="text-xs text-slate-500">Pagar / Receber</span>
+        <span className="text-xs text-slate-500">Pagar / Receber / Saldo</span>
       </div>
-      <div className="flex items-end gap-3 h-32">
-        {data.map(point => {
-          const heightPay = Math.max(1, (point.payables / maxAmount) * 100)
-          const heightRec = Math.max(1, (point.receivables / maxAmount) * 100)
-          return (
-            <div key={point.label} className="flex flex-col items-center gap-2 flex-1">
-              <div className="flex items-end gap-1 w-full h-24">
-                <div className="w-2 bg-red-400 rounded-t-lg" style={{ height: `${heightPay}%` }} />
-                <div className="w-2 bg-brand-400 rounded-t-lg" style={{ height: `${heightRec}%` }} />
-              </div>
-              <span className="text-xs text-slate-400">{point.label}</span>
-            </div>
-          )
-        })}
-      </div>
-      <div className="flex items-center justify-between text-xs text-slate-500">
-        <span className="flex items-center gap-1"><span className="w-2 h-2 bg-red-400 rounded-full" />Pagar</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 bg-brand-400 rounded-full" />Receber</span>
-      </div>
+      <ResponsiveContainer width="100%" height={240}>
+        <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} barCategoryGap="20%">
+          <CartesianGrid strokeDasharray="3 3" stroke={CHART_AXIS.grid} vertical={false} />
+          <XAxis dataKey="label" tick={{ fontSize: CHART_AXIS.tickFontSize, fill: CHART_AXIS.tick }} tickLine={false} axisLine={false} />
+          <YAxis tick={{ fontSize: CHART_AXIS.tickFontSize, fill: CHART_AXIS.tick }} tickLine={false} axisLine={false} tickFormatter={(v: number) => fmtBRL(v)} width={90} />
+          <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={{ fill: 'rgba(34, 81, 138, 0.06)' }} formatter={(v: any) => fmtBRL(Number(v))} />
+          <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+          <Bar dataKey="payables" name="A pagar" fill={FINANCE_FLOW_COLOR.payable} radius={[4, 4, 0, 0]} />
+          <Bar dataKey="receivables" name="A receber" fill={FINANCE_FLOW_COLOR.receivable} radius={[4, 4, 0, 0]} />
+          <Bar dataKey="net" name="Saldo" radius={[4, 4, 0, 0]}>
+            {data.map((p, i) => (
+              <Cell key={i} fill={p.net >= 0 ? FINANCE_FLOW_COLOR.netPositive : FINANCE_FLOW_COLOR.netNegative} fillOpacity={0.5} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   )
 }
 
-function MixList({ title, data, total }: { title: string; data: { category: string; valor: number }[]; total: number }) {
+const MIX_PALETTE = ['#22518a', '#16a34a', '#f59e0b', '#9333ea', '#0ea5e9', '#dc2626', '#6366f1']
+
+function MixList({ title, data, total, tone = 'payable' }: { title: string; data: { category: string; valor: number }[]; total: number; tone?: 'payable' | 'receivable' }) {
   if (!data?.length) return null
+  const accent = tone === 'payable' ? FINANCE_FLOW_COLOR.payable : FINANCE_FLOW_COLOR.receivable
   return (
     <div className="card p-5 space-y-3">
-      <h3 className="section-title text-sm">{title}</h3>
+      <div className="flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accent }} />
+        <h3 className="section-title text-sm">{title}</h3>
+      </div>
       <div className="space-y-2 text-sm">
-        {data.slice(0, 5).map(item => (
-          <div key={item.category} className="flex items-center justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-slate-800 truncate">{item.category}</p>
-              <div className="h-1.5 w-full mt-1 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-slate-800" style={{ width: `${Math.min(100, (item.valor / total) * 100)}%` }} />
+        {data.slice(0, 5).map((item, i) => {
+          const color = MIX_PALETTE[i % MIX_PALETTE.length]
+          return (
+            <div key={item.category} className="flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-slate-800 truncate flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                  {item.category}
+                </p>
+                <div className="h-2 w-full mt-1 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, (item.valor / total) * 100)}%`, backgroundColor: color }} />
+                </div>
               </div>
+              <span className="text-xs font-semibold text-slate-600">{formatPercent(total ? item.valor / total : 0)}</span>
             </div>
-            <span className="text-xs text-slate-500">{formatPercent(total ? item.valor / total : 0)}</span>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
@@ -145,22 +155,42 @@ const agingLabelMap: Record<string, string> = {
 
 const normalizeAgingLabel = (label: string) => agingLabelMap[label] || label
 
+const AGING_COLOR: Record<string, string> = {
+  'Até vencer': '#16a34a',
+  '0-30 dias': '#f59e0b',
+  '31-60 dias': '#f97316',
+  '+60 dias': '#dc2626',
+}
+
 function AgingList({ label, buckets }: { label: string; buckets?: { label: string; value: number }[] }) {
   if (!buckets?.length) return null
+  const total = buckets.reduce((sum, b) => sum + (b.value || 0), 0) || 1
   return (
     <div className="card p-5">
       <div className="flex items-center justify-between mb-3">
         <h3 className="section-title text-sm">{label}</h3>
         <span className="text-xs text-slate-500">Dias em atraso</span>
       </div>
-      <p className="text-xs text-slate-400 mb-3">Valores agrupados por faixa de atraso. Fonte: saneamento automático do sistema.</p>
-      <div className="space-y-2 text-sm text-slate-600">
-        {buckets.map(bucket => (
-          <div key={bucket.label} className="flex items-center justify-between">
-            <span className="text-xs text-slate-500">{normalizeAgingLabel(bucket.label)}</span>
-            <span className="font-semibold text-slate-800">{fmtBRL(bucket.value)}</span>
-          </div>
-        ))}
+      <p className="text-xs text-slate-400 mb-3">Valores agrupados por faixa de atraso.</p>
+      <div className="space-y-3 text-sm text-slate-600">
+        {buckets.map(bucket => {
+          const color = AGING_COLOR[bucket.label] || '#94a3b8'
+          const pct = Math.min(100, (bucket.value / total) * 100)
+          return (
+            <div key={bucket.label} className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-2 text-xs text-slate-600">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                  {normalizeAgingLabel(bucket.label)}
+                </span>
+                <span className="font-semibold text-slate-800">{fmtBRL(bucket.value)}</span>
+              </div>
+              <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -477,8 +507,8 @@ export default function FinancePage() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3">
-            <MixList title="Mix de pagamentos" data={payMixData} total={paymentMixTotal} />
-            <MixList title="Mix de recebimentos" data={recMixData} total={receivableMixTotal} />
+            <MixList title="Mix de pagamentos" data={payMixData} total={paymentMixTotal} tone="payable" />
+            <MixList title="Mix de recebimentos" data={recMixData} total={receivableMixTotal} tone="receivable" />
             <div className="space-y-4">
               <AgingList label="Mapa de atrasos • Contas a pagar" buckets={aging?.payables} />
               <AgingList label="Mapa de atrasos • Contas a receber" buckets={aging?.receivables} />

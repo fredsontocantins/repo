@@ -1,11 +1,12 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { Heart, Plus, Search, DollarSign, Package, TrendingUp } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend } from 'recharts'
 import { api } from '@/lib/api'
 import StatusBadge from '@/components/ui/StatusBadge'
 import Modal from '@/components/ui/Modal'
 import EmptyState from '@/components/ui/EmptyState'
+import { CHART_AXIS, CHART_TOOLTIP_STYLE, DONATION_TYPE_COLOR } from '@/lib/chart-colors'
 
 const TIPO_OPTIONS = ['MONETARY', 'FOOD', 'CLOTHING', 'MEDICINE', 'EQUIPMENT', 'SERVICE', 'OTHER']
 const TIPO_LABELS: Record<string, string> = {
@@ -89,13 +90,22 @@ export default function DonationsPage() {
 
           <div className="lg:col-span-2 card p-6">
             <h2 className="section-title mb-4">Doações por Tipo</h2>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={stats.byTipo?.map((t: any) => ({ ...t, nome: TIPO_LABELS[t.tipo] || t.tipo }))} barSize={28}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="nome" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ borderRadius: 10, fontSize: 12 }} />
-                <Bar dataKey="count" fill="#22c55e" radius={[6, 6, 0, 0]} name="Quantidade" />
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart
+                data={stats.byTipo?.map((t: any) => ({ ...t, nome: TIPO_LABELS[t.tipo] || t.tipo }))}
+                barSize={32}
+                margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_AXIS.grid} vertical={false} />
+                <XAxis dataKey="nome" tick={{ fontSize: CHART_AXIS.tickFontSize, fill: CHART_AXIS.tick }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: CHART_AXIS.tickFontSize, fill: CHART_AXIS.tick }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <Tooltip contentStyle={CHART_TOOLTIP_STYLE} cursor={{ fill: 'rgba(34, 81, 138, 0.06)' }} />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+                <Bar dataKey="count" radius={[6, 6, 0, 0]} name="Quantidade">
+                  {stats.byTipo?.map((t: any) => (
+                    <Cell key={t.tipo} fill={DONATION_TYPE_COLOR[t.tipo] ?? '#64748b'} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
