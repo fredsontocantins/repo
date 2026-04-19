@@ -23,12 +23,14 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (!ready || !user) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center"
+           style={{ background: 'linear-gradient(135deg,#0a1a30 0%,#112a4a 60%,#193e6b 100%)' }}>
         <div className="flex flex-col items-center gap-4">
-          <div className="w-14 h-14 bg-brand-500 rounded-2xl flex items-center justify-center animate-pulse">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center animate-pulse"
+               style={{ background: 'linear-gradient(135deg,#5e8abb,#22518a)' }}>
             <Leaf size={24} className="text-white" />
           </div>
-          <p className="text-slate-400 text-sm">Carregando...</p>
+          <p className="text-brand-200 text-sm">Carregando...</p>
         </div>
       </div>
     )
