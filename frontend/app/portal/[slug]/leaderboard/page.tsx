@@ -42,7 +42,7 @@ export default function PortalLeaderboardPage({ params }: PortalLeaderboardProps
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <PortalNav slug={slug} orgName={org?.name} />
 
-      <header className="bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 text-white">
+      <header className="bg-gradient-to-br from-brand-600 via-brand-500 to-brand-400 text-white">
         <div className="max-w-6xl mx-auto px-6 py-16 space-y-4 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-white/20 text-xs uppercase tracking-[0.4em]">
             <Trophy size={16} /> Ranking Público
@@ -56,10 +56,10 @@ export default function PortalLeaderboardPage({ params }: PortalLeaderboardProps
         <div className="grid md:grid-cols-3 gap-4">
           {top.map((volunteer, idx) => (
             <article key={volunteer.id} className="relative overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-lg">
-              <div className="absolute -top-6 right-6 text-sm font-black text-emerald-500">#{idx + 1}</div>
+              <div className="absolute -top-6 right-6 text-sm font-black text-brand-500">#{idx + 1}</div>
               <div className="p-6 space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white font-bold text-lg">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white font-bold text-lg">
                     {volunteer.nome[0]}
                   </div>
                   <div>
@@ -72,7 +72,7 @@ export default function PortalLeaderboardPage({ params }: PortalLeaderboardProps
                   <span className="flex items-center gap-1"><Clock size={14} /> {fmtNumber(volunteer.horasContribuidas)}h</span>
                 </div>
               </div>
-              <div className="h-0.5 bg-emerald-100" />
+              <div className="h-0.5 bg-brand-100" />
             </article>
           ))}
         </div>

@@ -75,9 +75,9 @@ body {
 
 /* ─── Portal Público ────────────────────────────────────── */
 .portal-hero-bg {
-  background: radial-gradient(ellipse at 20% 50%, rgba(34,197,94,0.15) 0%, transparent 60%),
-              radial-gradient(ellipse at 80% 20%, rgba(16,185,129,0.10) 0%, transparent 50%),
-              #0a0f1e;
+  background: radial-gradient(ellipse at 20% 50%, rgba(34, 83, 160, 0.22) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 20%, rgba(17, 42, 74, 0.28) 0%, transparent 50%),
+              #0a1a30;
 }
 .portal-card {
   @apply bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl;

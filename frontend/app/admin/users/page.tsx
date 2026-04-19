@@ -28,7 +28,7 @@ const roleCapabilities = [
       'Controla usuários internos (coordenação, voluntários e membros)',
       'Revisa metas e relatórios de alta prioridade',
     ],
-    accent: 'from-emerald-500 to-emerald-700',
+    accent: 'from-brand-500 to-brand-700',
   },
   {
     role: 'COORDINATOR',
@@ -159,7 +159,7 @@ export default function UsersPage() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900">Usuários cadastrados</h2>
-          {message && <span className="text-emerald-600 text-sm font-medium flex items-center gap-1"><Check size={14} />{message}</span>}
+          {message && <span className="text-brand-600 text-sm font-medium flex items-center gap-1"><Check size={14} />{message}</span>}
           {error && <span className="text-rose-500 text-sm font-medium flex items-center gap-1"><X size={14} />{error}</span>}
         </div>
         <div className="card p-5 space-y-4">
@@ -237,7 +237,7 @@ export default function UsersPage() {
                       <button
                         className={clsx(
                           'text-xs font-semibold px-3 py-1 rounded-full transition',
-                          account.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'
+                          account.isActive ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-500'
                         )}
                         onClick={() => toggleActive(account.id, account.isActive)}
                       >

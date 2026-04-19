@@ -50,12 +50,12 @@ export default function CampaignDetail({ params }: Params) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-50 to-brand-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 bg-white rounded-3xl shadow-lg flex items-center justify-center animate-spin">
-            <Sparkles size={28} className="text-emerald-500" />
+            <Sparkles size={28} className="text-brand-500" />
           </div>
-          <p className="text-emerald-700 font-semibold text-sm">Carregando campanha...</p>
+          <p className="text-brand-700 font-semibold text-sm">Carregando campanha...</p>
         </div>
       </div>
     )
@@ -63,10 +63,10 @@ export default function CampaignDetail({ params }: Params) {
 
   if (error || !campaign) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-slate-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-50 to-slate-100">
         <div className="bg-white rounded-3xl shadow-xl p-10 text-center">
           <p className="text-slate-600 text-lg">{error || 'Campanha não encontrada.'}</p>
-          <Link href={`/portal/${slug}/campaigns`} className="mt-4 inline-flex items-center gap-2 text-emerald-600 font-semibold">
+          <Link href={`/portal/${slug}/campaigns`} className="mt-4 inline-flex items-center gap-2 text-brand-600 font-semibold">
             <ArrowLeft size={14} /> Voltar
           </Link>
         </div>
@@ -75,14 +75,14 @@ export default function CampaignDetail({ params }: Params) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
-      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-emerald-100 shadow-sm">
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-50 to-brand-50">
+      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-brand-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center gap-4">
-          <Link href={`/portal/${slug}/campaigns`} className="text-slate-500 hover:text-emerald-600 flex items-center gap-2 text-sm font-semibold transition-colors bg-emerald-50 px-3 py-2 rounded-xl">
+          <Link href={`/portal/${slug}/campaigns`} className="text-slate-500 hover:text-brand-600 flex items-center gap-2 text-sm font-semibold transition-colors bg-brand-50 px-3 py-2 rounded-xl">
             <ArrowLeft size={14} /> Campanhas
           </Link>
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center">
+            <div className="w-7 h-7 bg-gradient-to-br from-brand-400 to-brand-500 rounded-lg flex items-center justify-center">
               <Sparkles size={14} className="text-white" />
             </div>
             <span className="text-sm font-black text-slate-800">{org?.name}</span>
@@ -91,8 +91,8 @@ export default function CampaignDetail({ params }: Params) {
       </nav>
 
       <header className="max-w-5xl mx-auto px-6 py-16 space-y-6 text-slate-900">
-        <div className="flex items-center gap-3 text-xs text-emerald-700">
-          <span className="bg-emerald-100 px-2 py-0.5 rounded-full uppercase tracking-wide font-semibold">{campaign.status === 'ACTIVE' ? 'Campanha aberta' : campaign.status}</span>
+        <div className="flex items-center gap-3 text-xs text-brand-700">
+          <span className="bg-brand-100 px-2 py-0.5 rounded-full uppercase tracking-wide font-semibold">{campaign.status === 'ACTIVE' ? 'Campanha aberta' : campaign.status}</span>
           <span className="text-slate-400">{campaign.destaque ? 'Destaque do portal' : 'Iniciativa comunitária'}</span>
         </div>
         <h1 className="text-4xl md:text-5xl font-black font-display leading-tight">{campaign.nome}</h1>
@@ -112,10 +112,10 @@ export default function CampaignDetail({ params }: Params) {
                   <p className="text-3xl font-black text-slate-900">{fmtBRL(campaign.arrecadado || 0)}</p>
                   <p className="text-xs text-slate-500">de {fmtBRL(campaign.metaArrecadacao || 0)}</p>
                 </div>
-                <span className="text-sm font-semibold text-emerald-600">{progress}% alcançado</span>
+                <span className="text-sm font-semibold text-brand-600">{progress}% alcançado</span>
               </div>
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden mt-3">
-                <div className="h-full bg-gradient-to-r from-emerald-400 to-teal-500" style={{ width: `${progress}%` }} />
+                <div className="h-full bg-gradient-to-r from-brand-400 to-brand-500" style={{ width: `${progress}%` }} />
               </div>
             </div>
             <div className="grid sm:grid-cols-2 gap-4 text-sm text-slate-600">
@@ -134,14 +134,14 @@ export default function CampaignDetail({ params }: Params) {
       <p className="text-xs uppercase text-slate-500 tracking-wider">Contato direto</p>
       <p className="text-sm text-slate-600">{org?.portalDescricao || org?.description}</p>
     </div>
-    <button type="button" onClick={() => setShowIntentModal(true)} className="inline-flex items-center gap-2 justify-center w-full rounded-2xl bg-emerald-600 text-white py-3 font-semibold shadow-lg shadow-emerald-300 hover:bg-emerald-700 transition">
+    <button type="button" onClick={() => setShowIntentModal(true)} className="inline-flex items-center gap-2 justify-center w-full rounded-2xl bg-brand-600 text-white py-3 font-semibold shadow-lg shadow-brand-300 hover:bg-brand-700 transition">
       Quero me voluntariar
     </button>
-    <a href={mailto} className="w-full inline-flex items-center gap-2 justify-center rounded-2xl border border-emerald-200 text-emerald-600 py-3 font-semibold shadow-sm hover:bg-emerald-50 transition">
+    <a href={mailto} className="w-full inline-flex items-center gap-2 justify-center rounded-2xl border border-brand-200 text-brand-600 py-3 font-semibold shadow-sm hover:bg-brand-50 transition">
       Enviar e-mail direto
     </a>
     <div className="text-xs text-slate-500 space-y-1">
-      {org?.website && <p>Site oficial: <Link href={org.website} className="text-emerald-600">{new URL(org.website).hostname}</Link></p>}
+      {org?.website && <p>Site oficial: <Link href={org.website} className="text-brand-600">{new URL(org.website).hostname}</Link></p>}
       <p>Email: <span className="font-semibold text-slate-900">{org?.email}</span></p>
     </div>
   </div>
@@ -230,7 +230,7 @@ export default function CampaignDetail({ params }: Params) {
           <textarea className="input" rows={3} value={intentForm.mensagem} onChange={e => setIntentForm(f => ({ ...f, mensagem: e.target.value }))} />
         </div>
         {intentMessage && (
-          <p className={intentStatus === 'success' ? 'text-emerald-600 text-sm' : 'text-red-600 text-sm'}>{intentMessage}</p>
+          <p className={intentStatus === 'success' ? 'text-brand-600 text-sm' : 'text-red-600 text-sm'}>{intentMessage}</p>
         )}
         <p className="text-xs text-slate-400">Seu pedido ficará pendente até que alguém da equipe aprove manualmente.</p>
         <div className="flex gap-3">

@@ -17,7 +17,7 @@ const mockMonthly = [
   { mes: 'Mar', voluntarios: 89, doacoes: 22000 },
 ]
 
-const COLORS = ['#ff6fb5', '#2c3e8a']
+const COLORS = ['#22518a', '#5e8abb']
 
 export default function DashboardPage() {
   const { user } = useAuthStore()

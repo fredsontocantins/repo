@@ -40,17 +40,17 @@ export default function CertificateVerifyPage() {
   const cert = result?.certificado
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 text-slate-800">
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-50 to-brand-50 text-slate-800">
       {/* Nav */}
       <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#060d1f]/90 backdrop-blur-xl no-print">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
               <Leaf size={14} className="text-white" />
             </div>
             <span className="text-sm font-black text-slate-800">Verificação de Certificado</span>
           </div>
-          <Link href="/" className="text-slate-500 hover:text-emerald-600 text-sm flex items-center gap-1 font-semibold bg-emerald-50 px-3 py-2 rounded-xl transition-colors">
+          <Link href="/" className="text-slate-500 hover:text-brand-600 text-sm flex items-center gap-1 font-semibold bg-brand-50 px-3 py-2 rounded-xl transition-colors">
             <ArrowLeft size={14} /> Início
           </Link>
         </div>
@@ -59,8 +59,8 @@ export default function CertificateVerifyPage() {
       <div className="max-w-3xl mx-auto px-6 py-16 no-print">
         {/* Hero */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-6">
-            <Shield size={28} className="text-emerald-500" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-500/10 border border-brand-500/20 mb-6">
+            <Shield size={28} className="text-brand-500" />
           </div>
           <h1 className="text-4xl font-black font-display text-slate-900 mb-3">Verificar Certificado</h1>
           <p className="text-slate-500 max-w-md mx-auto">
@@ -75,13 +75,13 @@ export default function CertificateVerifyPage() {
             <input
               value={codigo}
               onChange={e => setCodigo(e.target.value.toUpperCase())}
-              className="w-full bg-white border border-emerald-200 rounded-xl shadow-sm px-4 py-3.5 pl-11 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-500 transition-all font-mono text-sm tracking-widest"
+              className="w-full bg-white border border-brand-200 rounded-xl shadow-sm px-4 py-3.5 pl-11 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-400/30 focus:border-brand-500 transition-all font-mono text-sm tracking-widest"
               placeholder="VOL-2024-XXXXXX"
               autoComplete="off"
             />
           </div>
           <button type="submit" disabled={loading || !codigo.trim()}
-            className="px-6 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-xl transition-all disabled:opacity-50 text-sm">
+            className="px-6 py-3.5 bg-brand-500 hover:bg-brand-400 text-white font-bold rounded-xl transition-all disabled:opacity-50 text-sm">
             {loading ? 'Verificando...' : 'Verificar'}
           </button>
         </form>
@@ -109,9 +109,9 @@ export default function CertificateVerifyPage() {
         <>
           {/* Screen action bar */}
           <div className="max-w-3xl mx-auto px-6 mb-6 no-print">
-            <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
-              <CheckCircle2 size={18} className="text-emerald-400 flex-shrink-0" />
-              <p className="text-emerald-300 text-sm font-medium flex-1">Certificado válido e autêntico</p>
+            <div className="flex items-center gap-3 bg-brand-500/10 border border-brand-500/20 rounded-xl p-4">
+              <CheckCircle2 size={18} className="text-brand-400 flex-shrink-0" />
+              <p className="text-brand-300 text-sm font-medium flex-1">Certificado válido e autêntico</p>
               <button onClick={handlePrint}
                 className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded-xl transition-all">
                 <Download size={14} /> Imprimir / Salvar PDF
@@ -123,13 +123,13 @@ export default function CertificateVerifyPage() {
           <div className="max-w-3xl mx-auto px-6 pb-16 cert-page">
             <div className="bg-white text-slate-900 rounded-3xl overflow-hidden shadow-2xl" style={{ fontFamily: 'Georgia, serif' }}>
               {/* Top accent bar */}
-              <div className="h-2 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600" />
+              <div className="h-2 bg-gradient-to-r from-brand-500 via-brand-400 to-brand-600" />
 
               {/* Header */}
               <div className="px-12 pt-10 pb-6 border-b border-slate-100">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center">
+                    <div className="w-10 h-10 bg-brand-500 rounded-xl flex items-center justify-center">
                       <Leaf size={18} className="text-white" />
                     </div>
                     <div>
@@ -148,8 +148,8 @@ export default function CertificateVerifyPage() {
 
               {/* Body */}
               <div className="px-12 py-10 text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-50 border-2 border-emerald-100 mb-6">
-                  <Award size={28} className="text-emerald-500" />
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-50 border-2 border-brand-100 mb-6">
+                  <Award size={28} className="text-brand-500" />
                 </div>
 
                 <p className="text-slate-400 text-sm uppercase tracking-[0.2em] mb-3">
@@ -162,7 +162,7 @@ export default function CertificateVerifyPage() {
 
                 <p className="text-slate-400 text-sm mb-8">Certificamos que</p>
 
-                <div className="inline-block border-b-2 border-emerald-400 mb-3 px-8">
+                <div className="inline-block border-b-2 border-brand-400 mb-3 px-8">
                   <p className="text-3xl font-black text-slate-900" style={{ fontFamily: 'Georgia, serif' }}>
                     {cert.volunteer?.nome}
                   </p>
@@ -179,7 +179,7 @@ export default function CertificateVerifyPage() {
                 <div className="flex items-center justify-center gap-8 py-6 border-t border-b border-slate-100 mb-8">
                   {cert.horasCertificadas && (
                     <div className="text-center">
-                      <p className="text-2xl font-black text-emerald-600">{cert.horasCertificadas}h</p>
+                      <p className="text-2xl font-black text-brand-600">{cert.horasCertificadas}h</p>
                       <p className="text-slate-400 text-xs uppercase tracking-widest mt-1">Horas Certificadas</p>
                     </div>
                   )}
@@ -231,7 +231,7 @@ export default function CertificateVerifyPage() {
               </div>
 
               {/* Bottom bar */}
-              <div className="h-1.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600" />
+              <div className="h-1.5 bg-gradient-to-r from-brand-500 via-brand-400 to-brand-600" />
             </div>
           </div>
         </>

@@ -60,21 +60,21 @@ export default function PortalHome({ params }: PortalProps) {
   const pct = (v: number, m: number) => m > 0 ? Math.min(100, Math.round((v / m) * 100)) : 0
 
   if (loading) return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-50 to-brand-50 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div className="w-16 h-16 bg-white rounded-3xl shadow-lg flex items-center justify-center animate-bounce">
-          <Leaf size={28} className="text-emerald-500" />
+          <Leaf size={28} className="text-brand-500" />
         </div>
-        <p className="text-emerald-700 font-semibold text-sm">Carregando portal...</p>
+        <p className="text-brand-700 font-semibold text-sm">Carregando portal...</p>
       </div>
     </div>
   )
 
   if (error) return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 to-brand-100 flex items-center justify-center">
       <div className="text-center bg-white rounded-3xl p-12 shadow-xl">
         <p className="text-slate-600 text-lg">{error}</p>
-        <Link href="/" className="text-emerald-600 text-sm mt-4 inline-block font-semibold">← Voltar</Link>
+        <Link href="/" className="text-brand-600 text-sm mt-4 inline-block font-semibold">← Voltar</Link>
       </div>
     </div>
   )
@@ -86,7 +86,7 @@ export default function PortalHome({ params }: PortalProps) {
       <PortalNav slug={slug} orgName={org?.name} />
 
       {/* ── HERO ── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400 text-white">
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-500 via-brand-400 to-brand-600 text-white">
         {/* Fun background shapes */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-20 -right-20 w-80 h-80 bg-white/10 rounded-full" />
@@ -116,7 +116,7 @@ export default function PortalHome({ params }: PortalProps) {
 
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <Link href={`/portal/${slug}/campaigns`}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-emerald-600 font-black rounded-2xl shadow-xl hover:-translate-y-1 transition-all text-sm">
+              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-brand-600 font-black rounded-2xl shadow-xl hover:-translate-y-1 transition-all text-sm">
               Ver Campanhas <ArrowRight size={16} />
             </Link>
             <Link href={`/portal/${slug}/leaderboard`}
@@ -140,7 +140,7 @@ export default function PortalHome({ params }: PortalProps) {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[
               { label: 'Voluntários', value: fmt(stats.voluntariosAtivos), emoji: '🙋', bg: 'from-blue-400 to-indigo-500', light: 'bg-blue-50 border-blue-100' },
-              { label: 'Campanhas', value: fmt(stats.campanhasAtivas), emoji: '📢', bg: 'from-emerald-400 to-teal-500', light: 'bg-emerald-50 border-emerald-100' },
+              { label: 'Campanhas', value: fmt(stats.campanhasAtivas), emoji: '📢', bg: 'from-brand-400 to-brand-500', light: 'bg-brand-50 border-brand-100' },
               { label: 'Arrecadado', value: fmtBRL(stats.totalArrecadado), emoji: '💰', bg: 'from-amber-400 to-orange-500', light: 'bg-amber-50 border-amber-100' },
               { label: 'Horas Doadas', value: fmt(stats.totalHoras) + 'h', emoji: '⏰', bg: 'from-pink-400 to-rose-500', light: 'bg-pink-50 border-pink-100' },
               { label: 'Eventos', value: fmt(stats.eventosAgendados), emoji: '📅', bg: 'from-purple-400 to-violet-500', light: 'bg-purple-50 border-purple-100' },
@@ -162,13 +162,13 @@ export default function PortalHome({ params }: PortalProps) {
         <section className="max-w-6xl mx-auto px-6 pb-20">
           <div className="flex items-end justify-between mb-8">
             <div>
-              <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wide mb-3">
+              <span className="inline-block px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-xs font-bold uppercase tracking-wide mb-3">
                 💚 Em andamento
               </span>
               <h2 className="text-3xl font-black font-display text-slate-900">Campanhas Ativas</h2>
             </div>
             <Link href={`/portal/${slug}/campaigns`}
-              className="text-emerald-600 hover:text-emerald-700 text-sm font-bold flex items-center gap-1 bg-emerald-50 px-4 py-2 rounded-xl hover:bg-emerald-100 transition-all">
+              className="text-brand-600 hover:text-brand-700 text-sm font-bold flex items-center gap-1 bg-brand-50 px-4 py-2 rounded-xl hover:bg-brand-100 transition-all">
               Ver todas <ArrowRight size={14} />
             </Link>
           </div>
@@ -176,12 +176,12 @@ export default function PortalHome({ params }: PortalProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {campaigns.slice(0, 6).map((c: any, idx: number) => {
               const gradients = [
-                'from-emerald-400 to-teal-500',
+                'from-brand-400 to-brand-500',
                 'from-blue-400 to-indigo-500',
                 'from-orange-400 to-amber-500',
                 'from-pink-400 to-rose-500',
                 'from-purple-400 to-violet-500',
-                'from-cyan-400 to-blue-500',
+                'from-brand-400 to-blue-500',
               ]
               const prog = pct(c.arrecadado, c.metaArrecadacao || 0)
               return (
@@ -194,14 +194,14 @@ export default function PortalHome({ params }: PortalProps) {
                         ⭐ Destaque
                       </div>
                     )}
-                    <h3 className="font-black text-slate-900 text-base mb-2 group-hover:text-emerald-600 transition-colors">{c.nome}</h3>
+                    <h3 className="font-black text-slate-900 text-base mb-2 group-hover:text-brand-600 transition-colors">{c.nome}</h3>
                     <p className="text-slate-500 text-sm mb-4 line-clamp-2 leading-relaxed">{c.descricao}</p>
 
                     {c.metaArrecadacao && (
                       <div className="mb-4">
                         <div className="flex justify-between text-xs mb-2">
                           <span className="text-slate-500 font-medium">{fmtBRL(c.arrecadado)}</span>
-                          <span className="font-black text-emerald-600">{prog}%</span>
+                          <span className="font-black text-brand-600">{prog}%</span>
                         </div>
                         <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
                           <div className={`h-full bg-gradient-to-r ${gradients[idx % 6]} rounded-full transition-all duration-700`}
@@ -247,7 +247,7 @@ export default function PortalHome({ params }: PortalProps) {
                     {ev.descricao && <p className="text-slate-500 text-sm mt-0.5 line-clamp-1">{ev.descricao}</p>}
                     {ev.local && (
                       <div className="flex items-center gap-1 text-xs text-slate-400 mt-2">
-                        <MapPin size={11} className="text-emerald-500" />{ev.local}
+                        <MapPin size={11} className="text-brand-500" />{ev.local}
                       </div>
                     )}
                     {ev.capacidade && (
@@ -287,7 +287,7 @@ export default function PortalHome({ params }: PortalProps) {
               return (
                 <div key={v.id} className={`rounded-3xl border-2 p-6 text-center hover:-translate-y-1 transition-all duration-300 ${bgs[i]}`}>
                   <div className="text-4xl mb-3">{medals[i]}</div>
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-black text-xl mx-auto mb-3 shadow-lg">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-500 flex items-center justify-center text-white font-black text-xl mx-auto mb-3 shadow-lg">
                     {v.nome[0].toUpperCase()}
                   </div>
                   <p className="font-black text-slate-900">{v.nome}</p>
@@ -312,13 +312,13 @@ export default function PortalHome({ params }: PortalProps) {
       )}
 
       {/* ── CTA CERTIFICADO ── */}
-      <section className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 py-16">
+      <section className="bg-gradient-to-r from-brand-600 via-brand-500 to-brand-400 py-16">
         <div className="max-w-3xl mx-auto px-6 text-center text-white">
           <div className="text-5xl mb-4">🎓</div>
           <h2 className="text-3xl font-black font-display mb-3">Verificar Certificado</h2>
           <p className="text-white/80 mb-8">Confirme a autenticidade de certificados emitidos por esta organização.</p>
           <Link href="/portal/certificate"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-emerald-600 font-black rounded-2xl shadow-xl hover:-translate-y-1 transition-all">
+            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-brand-600 font-black rounded-2xl shadow-xl hover:-translate-y-1 transition-all">
             <CheckCircle2 size={18} /> Verificar agora
           </Link>
         </div>
@@ -328,7 +328,7 @@ export default function PortalHome({ params }: PortalProps) {
       <footer className="bg-slate-900 text-white">
         <div className="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center">
+            <div className="w-9 h-9 bg-gradient-to-br from-brand-400 to-brand-500 rounded-xl flex items-center justify-center">
               <Leaf size={15} className="text-white" />
             </div>
             <div>
@@ -338,7 +338,7 @@ export default function PortalHome({ params }: PortalProps) {
           </div>
           <div className="flex items-center gap-4 text-xs text-slate-500">
             {org?.email && <span>📧 {org.email}</span>}
-            <Link href="/portal/certificate" className="text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors font-semibold">
+            <Link href="/portal/certificate" className="text-brand-400 hover:text-brand-300 flex items-center gap-1 transition-colors font-semibold">
               ✅ Verificar Certificado
             </Link>
           </div>
