@@ -1,43 +1,59 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import {
   LayoutDashboard, Users, Megaphone, Heart, Trophy, FileBarChart,
   Calendar, Settings, LogOut, Leaf, Award, Globe,
-  UsersRound, ChevronRight, Building2, Wallet
+  UsersRound, ChevronRight, Building2, Wallet, Inbox,
 } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
+import { api } from '@/lib/api'
 import { clsx } from 'clsx'
 
-const gestaoItems = [
-  { href: '/dashboard',     label: 'Dashboard',     icon: LayoutDashboard },
-  { href: '/volunteers',    label: 'Voluntários',   icon: Users },
-  { href: '/campaigns',     label: 'Campanhas',     icon: Megaphone },
-  { href: '/donations',     label: 'Doações',       icon: Heart },
-  { href: '/events',        label: 'Eventos',       icon: Calendar },
-  { href: '/gamification',  label: 'Gamificação',   icon: Trophy },
-  { href: '/reports',       label: 'Relatórios',    icon: FileBarChart },
-  { href: '/finance',        label: 'Financeiro',    icon: Wallet },
+type NavItem = {
+  href: string
+  label: string
+  icon: any
+  badge?: number
+}
+
+const gestaoBase: NavItem[] = [
+  { href: '/dashboard',            label: 'Dashboard',              icon: LayoutDashboard },
+  { href: '/volunteers',           label: 'Voluntários',            icon: Users },
+  { href: '/volunteer-interests',  label: 'Interesses (Portal)',    icon: Inbox },
+  { href: '/campaigns',            label: 'Campanhas',              icon: Megaphone },
+  { href: '/donations',            label: 'Doações',                icon: Heart },
+  { href: '/events',               label: 'Eventos',                icon: Calendar },
+  { href: '/gamification',         label: 'Gamificação',            icon: Trophy },
+  { href: '/reports',              label: 'Relatórios',             icon: FileBarChart },
+  { href: '/finance',              label: 'Financeiro',             icon: Wallet },
 ]
 
-const adminItems = [
+const adminItems: NavItem[] = [
   { href: '/admin/members',      label: 'Equipe Interna', icon: UsersRound },
   { href: '/admin/certificates', label: 'Certificados',   icon: Award },
   { href: '/settings',           label: 'Configurações',  icon: Settings },
 ]
 
-function NavSection({ title, items, pathname }: { title: string; items: typeof gestaoItems; pathname: string }) {
+function NavSection({ title, items, pathname }: { title: string; items: NavItem[]; pathname: string }) {
   return (
     <div className="mb-2">
       <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-[0.6em] text-[rgba(191,201,247,0.75)]">{title}</p>
-      {items.map(({ href, label, icon: Icon }) => {
+      {items.map(({ href, label, icon: Icon, badge }) => {
         const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
         return (
           <Link key={href} href={href}
             className={clsx('sidebar-link', active && 'active')}>
             <Icon size={16} />
             <span className="flex-1 text-[14px]">{label}</span>
-            {active && <ChevronRight size={13} className="text-white/70" />}
+            {badge && badge > 0 ? (
+              <span className="inline-flex items-center justify-center min-w-[20px] h-[18px] px-1.5 rounded-full bg-amber-400 text-brand-900 text-[10px] font-bold">
+                {badge > 99 ? '99+' : badge}
+              </span>
+            ) : active ? (
+              <ChevronRight size={13} className="text-white/70" />
+            ) : null}
           </Link>
         )
       })}
@@ -50,6 +66,27 @@ export default function Sidebar() {
   const { user, logout } = useAuthStore()
   const slug = user?.organization?.slug || 'voluntarios-unidos'
   const isAdmin = ['ADMIN', 'SUPER_ADMIN'].includes(user?.role || '')
+  const [pendingInterests, setPendingInterests] = useState(0)
+
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    const fetchPending = async () => {
+      try {
+        const s = await api.getCampaignInterestStats()
+        if (!cancelled) setPendingInterests(s?.PENDING ?? 0)
+      } catch {
+        /* silent — endpoint may 403 for basic roles */
+      }
+    }
+    fetchPending()
+    const intv = setInterval(fetchPending, 60_000)
+    return () => { cancelled = true; clearInterval(intv) }
+  }, [user, pathname])
+
+  const gestaoItems: NavItem[] = gestaoBase.map(i =>
+    i.href === '/volunteer-interests' ? { ...i, badge: pendingInterests } : i,
+  )
 
   return (
     <aside className="fixed left-0 top-0 h-screen z-40 sidebar-shell">
