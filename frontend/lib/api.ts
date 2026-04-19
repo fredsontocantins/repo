@@ -156,6 +156,18 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     }),
+  publicVolunteerIntent: (slug: string, data: Record<string, any>) =>
+    publicRequest<any>(`/public/org/${slug}/volunteer-intent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }),
+  publicDonationIntent: (slug: string, data: Record<string, any>) =>
+    publicRequest<any>(`/public/org/${slug}/donation-intent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }),
 
   // Campaign interests (admin)
   getCampaignInterests: (params?: Record<string, any>) => request<any>(`/campaign-interests${qs(params)}`),
