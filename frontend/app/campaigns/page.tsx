@@ -284,14 +284,18 @@ export default function CampaignsPage() {
                     </div>
                     <ProgressBar value={campaign.arrecadado || 0} max={campaign.metaArrecadacao || 1} size="sm" />
                   </div>
-                  <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-100 text-xs">
+                  <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100 text-xs">
                     <button
-                      className="btn-outline flex items-center gap-2 py-1 px-3 text-xs"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition-colors"
                       onClick={() => openAssignmentModal(campaign)}
                     >
                       <UserPlus size={14} /> Alocar voluntários
                     </button>
-                    <Link href={`/campaigns/${campaign.id}`} className="flex items-center gap-1 font-semibold" style={{ color: s.bar }}>
+                    <Link
+                      href={`/campaigns/${campaign.id}`}
+                      className="ml-auto inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors"
+                      style={{ color: s.bar }}
+                    >
                       Ver campanha <ArrowRight size={14} />
                     </Link>
                   </div>
