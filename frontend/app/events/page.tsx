@@ -216,15 +216,19 @@ export default function EventsPage() {
                   {ev.campaign && (
                     <div className="text-xs" style={{ color: s.bar }}>Campanha: {ev.campaign.nome}</div>
                   )}
-                  <div className="flex items-center gap-3 pt-3 border-t border-slate-100 text-xs">
+                  <div className="flex items-center gap-2 pt-3 border-t border-slate-100 text-xs">
                     <button
                       type="button"
-                      className="btn-outline text-[11px] flex items-center gap-2 px-3 py-1"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition-colors"
                       onClick={() => openEventAssignmentModal(ev)}
                     >
-                      <UserPlus size={14} /> Voluntários
+                      <UserPlus size={14} /> Inscrever voluntário
                     </button>
-                    <Link href={`/events/${ev.id}`} className="flex items-center gap-1 font-semibold" style={{ color: s.bar }}>
+                    <Link
+                      href={`/events/${ev.id}`}
+                      className="ml-auto inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors"
+                      style={{ color: s.bar }}
+                    >
                       Detalhes <ArrowRight size={14} />
                     </Link>
                   </div>
