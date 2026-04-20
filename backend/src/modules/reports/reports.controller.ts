@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common'
+import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common'
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger'
 import { ReportsService } from './reports.service'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
@@ -16,6 +16,23 @@ export class ReportsController {
   @Get()
   findAll(@CurrentUser() user: any) {
     return this.service.findAll(user.orgId)
+  }
+
+  @Get('preview')
+  preview(
+    @CurrentUser() user: any,
+    @Query('tipo') tipo = 'general',
+    @Query('dataInicio') dataInicio?: string,
+    @Query('dataFim') dataFim?: string,
+    @Query('status') status?: string,
+    @Query('donationType') donationType?: string,
+  ) {
+    const filtros: any = {}
+    if (dataInicio) filtros.dataInicio = dataInicio
+    if (dataFim) filtros.dataFim = dataFim
+    if (status) filtros.status = status
+    if (donationType) filtros.tipo = donationType
+    return this.service.preview(user.orgId, tipo, filtros)
   }
 
   @Post('generate')
