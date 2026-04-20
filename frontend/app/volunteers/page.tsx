@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState, useCallback, useMemo } from 'react'
-import { Users, Search, Plus, Filter, Star, Clock, Award } from 'lucide-react'
+import { Users, Search, Plus, Filter, Star, Clock, Check, X, Pause, Play, Loader2, AlertCircle } from 'lucide-react'
 import { api } from '@/lib/api'
 import StatusFilterChips from '@/components/ui/StatusFilterChips'
 import Modal from '@/components/ui/Modal'
@@ -17,6 +17,8 @@ export default function VolunteersPage() {
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({ nome: '', email: '', telefone: '', profissao: '', bio: '' })
   const [saving, setSaving] = useState(false)
+  const [busyId, setBusyId] = useState<number | null>(null)
+  const [toast, setToast] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -24,9 +26,9 @@ export default function VolunteersPage() {
       const params: any = { page, limit: 12 }
       if (search) params.search = search
       if (status) params.status = status
-      const [res, s] = await Promise.all([api.getVolunteers(params), stats ? null : api.getVolunteerStats()])
+      const [res, s] = await Promise.all([api.getVolunteers(params), api.getVolunteerStats()])
       setData(res)
-      if (s) setStats(s)
+      setStats(s)
     } catch (e) { console.error(e) }
     finally { setLoading(false) }
   }, [search, status, page])
@@ -43,6 +45,21 @@ export default function VolunteersPage() {
       load()
     } catch (e: any) { alert(e.message) }
     finally { setSaving(false) }
+  }
+
+  async function changeStatus(v: any, newStatus: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'PENDING', label: string) {
+    setBusyId(v.id)
+    setToast(null)
+    try {
+      await api.updateVolunteer(v.id, { status: newStatus })
+      setToast({ kind: 'ok', text: `${v.nome}: ${label}` })
+      await load()
+    } catch (err: any) {
+      setToast({ kind: 'err', text: err?.message || 'Falha ao atualizar status' })
+    } finally {
+      setBusyId(null)
+      setTimeout(() => setToast(null), 4000)
+    }
   }
 
   const fmt = (n: number) => new Intl.NumberFormat('pt-BR').format(n)
@@ -86,6 +103,46 @@ export default function VolunteersPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pending action banner */}
+      {stats?.pending > 0 && status !== 'PENDING' && (
+        <button
+          type="button"
+          onClick={() => { setStatus('PENDING'); setPage(1) }}
+          className="w-full card p-4 flex items-center gap-4 border-l-4 border-amber-400 hover:bg-amber-50 transition text-left"
+        >
+          <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0">
+            <AlertCircle size={18} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-slate-900 text-sm">
+              {stats.pending} voluntário{stats.pending > 1 ? 's' : ''} aguardando aprovação
+            </p>
+            <p className="text-xs text-slate-500">
+              Clique para revisar e ativar/rejeitar cadastros pendentes.
+            </p>
+          </div>
+          <span className="text-xs font-bold px-3 py-1.5 rounded-lg bg-amber-500 text-white">Revisar</span>
+        </button>
+      )}
+
+      {status === 'PENDING' && (
+        <div className="card p-4 flex items-center gap-3 border-l-4 border-amber-400 bg-amber-50/40">
+          <AlertCircle size={18} className="text-amber-600 flex-shrink-0" />
+          <p className="text-sm text-slate-700">
+            Use os botões <strong className="text-green-700">Ativar</strong> ou <strong className="text-red-700">Rejeitar</strong> em cada card abaixo para decidir o cadastro.
+          </p>
+        </div>
+      )}
+
+      {toast && (
+        <div className={`card p-3 flex items-center gap-2 border-l-4 ${
+          toast.kind === 'ok' ? 'border-green-400 text-green-800' : 'border-red-400 text-red-800'
+        }`}>
+          {toast.kind === 'ok' ? <Check size={16} /> : <X size={16} />}
+          <p className="text-sm font-medium">{toast.text}</p>
         </div>
       )}
 
@@ -181,6 +238,61 @@ export default function VolunteersPage() {
                         <span key={b.id} className="text-sm" title={b.badge.nome}>{b.badge.icone}</span>
                       ))}
                     </div>
+                  )}
+                </div>
+
+                {/* Status actions */}
+                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+                  {v.status === 'PENDING' && (
+                    <>
+                      <button
+                        type="button"
+                        disabled={busyId === v.id}
+                        onClick={() => changeStatus(v, 'ACTIVE', 'ativado com sucesso')}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+                      >
+                        {busyId === v.id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+                        Ativar
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busyId === v.id}
+                        onClick={() => {
+                          if (confirm(`Rejeitar o cadastro de ${v.nome}?`)) {
+                            changeStatus(v, 'INACTIVE', 'cadastro rejeitado')
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-white border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                      >
+                        <X size={13} /> Rejeitar
+                      </button>
+                    </>
+                  )}
+                  {v.status === 'ACTIVE' && (
+                    <button
+                      type="button"
+                      disabled={busyId === v.id}
+                      onClick={() => {
+                        if (confirm(`Suspender temporariamente ${v.nome}?`)) {
+                          changeStatus(v, 'SUSPENDED', 'suspenso')
+                        }
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-amber-200 text-amber-700 hover:bg-amber-50 disabled:opacity-50 transition-colors"
+                    >
+                      {busyId === v.id ? <Loader2 size={13} className="animate-spin" /> : <Pause size={13} />}
+                      Suspender
+                    </button>
+                  )}
+                  {(v.status === 'SUSPENDED' || v.status === 'INACTIVE') && (
+                    <button
+                      type="button"
+                      disabled={busyId === v.id}
+                      onClick={() => changeStatus(v, 'ACTIVE', 'reativado')}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+                    >
+                      {busyId === v.id ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} />}
+                      Reativar
+                    </button>
                   )}
                 </div>
               </div>
