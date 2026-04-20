@@ -131,6 +131,8 @@ export const api = {
 
   // Reports
   getReports: () => request<any>('/reports'),
+  previewReport: (tipo: string, filtros?: Record<string, any>) =>
+    request<any>(`/reports/preview${qs({ tipo, ...(filtros || {}) })}`),
   generateReport: (tipo: string, filtros?: any) =>
     request<any>('/reports/generate', { method: 'POST', body: JSON.stringify({ tipo, filtros }) }),
 
