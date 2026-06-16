@@ -5,15 +5,22 @@ echo "========================================"
 echo "  Voluntarios App - Setup"
 echo "========================================"
 
-# [1/7] Instala ferramentas auxiliares
+# [1/8] Instala ferramentas auxiliares
 echo ""
-echo "[1/7] Instalando utilitarios (postgresql-client)..."
+echo "[1/8] Instalando utilitarios (postgresql-client)..."
 sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client 2>/dev/null
 echo "  OK. Utilitarios prontos!"
 
-# [2/7] Cria .env na raiz se nao existir
+# [2/8] Instala Docker CLI
 echo ""
-echo "[2/7] Verificando .env na raiz do projeto..."
+echo "[2/8] Instalando Docker CLI..."
+curl -fsSL https://get.docker.com | sh 2>/dev/null
+sudo usermod -aG docker node 2>/dev/null
+echo "  OK. Docker CLI pronto!"
+
+# [3/8] Cria .env na raiz se nao existir
+echo ""
+echo "[3/8] Verificando .env na raiz do projeto..."
 if [ ! -f /workspace/.env ]; then
   if [ -f /workspace/.env.example ]; then
     cp /workspace/.env.example /workspace/.env
@@ -25,9 +32,9 @@ else
   echo "  OK. .env ja existe"
 fi
 
-# [3/7] Aguarda PostgreSQL ficar pronto
+# [4/8] Aguarda PostgreSQL ficar pronto
 echo ""
-echo "[3/7] Aguardando PostgreSQL..."
+echo "[4/8] Aguardando PostgreSQL..."
 for i in $(seq 1 30); do
   if pg_isready -h postgres -U postgres > /dev/null 2>&1; then
     echo "  OK. PostgreSQL pronto!"
@@ -40,27 +47,27 @@ for i in $(seq 1 30); do
   sleep 1
 done
 
-# [4/7] Backend
+# [5/8] Backend
 echo ""
-echo "[4/7] Instalando dependencias do backend..."
+echo "[5/8] Instalando dependencias do backend..."
 cd /workspace/backend
 npm install --legacy-peer-deps
 
-# [5/7] Configurando banco de dados
+# [6/8] Configurando banco de dados
 echo ""
-echo "[5/7] Configurando banco de dados..."
+echo "[6/8] Configurando banco de dados..."
 cp -n .env.example .env 2>/dev/null || true
 npx prisma generate
 npx prisma db push --accept-data-loss 2>/dev/null || npx prisma db push
 
-# [6/7] Populando banco (seed)
+# [7/8] Populando banco (seed)
 echo ""
-echo "[6/7] Populando banco (seed)..."
+echo "[7/8] Populando banco (seed)..."
 npx ts-node --compiler-options '{"module":"commonjs","skipLibCheck":true}' prisma/seed.ts 2>/dev/null || echo "  INFO: Seed ja aplicado ou tabelas ja populadas"
 
-# [7/7] Frontend
+# [8/8] Frontend
 echo ""
-echo "[7/7] Instalando dependencias do frontend..."
+echo "[8/8] Instalando dependencias do frontend..."
 cd /workspace/frontend
 npm install --legacy-peer-deps
 
