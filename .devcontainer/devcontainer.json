@@ -21,6 +21,9 @@
       "onAutoForward": "silent"
     }
   },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-from-docker:1": {}
+  },
   "postCreateCommand": "bash .devcontainer/setup.sh",
   "customizations": {
     "vscode": {
