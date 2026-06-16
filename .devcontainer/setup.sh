@@ -11,11 +11,23 @@ echo "[1/8] Instalando utilitarios (postgresql-client)..."
 sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client 2>/dev/null
 echo "  OK. Utilitarios prontos!"
 
-# [2/8] Instala Docker CLI
+# [2/8] Instala Docker CLI (sem Docker Engine — o daemon roda no host)
 echo ""
 echo "[2/8] Instalando Docker CLI..."
-curl -fsSL https://get.docker.com | sh 2>/dev/null
-sudo usermod -aG docker node 2>/dev/null
+sudo apt-get update -qq && sudo apt-get install -y -qq ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update -qq && sudo apt-get install -y -qq docker-ce-cli
+# Ajusta GID do grupo docker para bater com o socket montado do host
+DOCKER_GID=$(stat -c '%g' /var/run/docker.sock 2>/dev/null || echo 999)
+if getent group docker > /dev/null 2>&1; then
+  sudo groupmod -g "$DOCKER_GID" docker
+else
+  sudo groupadd -g "$DOCKER_GID" docker
+fi
+sudo usermod -aG docker node
 echo "  OK. Docker CLI pronto!"
 
 # [3/8] Cria .env na raiz se nao existir
