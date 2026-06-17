@@ -1,11 +1,11 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
 import { Heart, Plus, Search, DollarSign, Package, TrendingUp } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend } from 'recharts'
 import { clsx } from 'clsx'
 import { api } from '@/lib/api'
 import StatusBadge from '@/components/ui/StatusBadge'
-import Modal from '@/components/ui/Modal'
 import EmptyState from '@/components/ui/EmptyState'
 import { CHART_AXIS, CHART_TOOLTIP_STYLE, DONATION_TYPE_COLOR, donationTypeColor, statusColor } from '@/lib/chart-colors'
 
@@ -55,9 +55,6 @@ export default function DonationsPage() {
   const [tipo, setTipo] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [page, setPage] = useState(1)
-  const [showModal, setShowModal] = useState(false)
-  const [form, setForm] = useState({ tipo: 'MONETARY', valor: '', descricao: '', doadorNome: '', doadorEmail: '', campaignId: '' })
-  const [saving, setSaving] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -73,22 +70,6 @@ export default function DonationsPage() {
 
   useEffect(() => { load() }, [load])
 
-  async function handleCreate(e: React.FormEvent) {
-    e.preventDefault()
-    setSaving(true)
-    try {
-      await api.createDonation({
-        ...form,
-        valor: form.valor ? Number(form.valor) : undefined,
-        campaignId: form.campaignId ? Number(form.campaignId) : undefined,
-      })
-      setShowModal(false)
-      setForm({ tipo: 'MONETARY', valor: '', descricao: '', doadorNome: '', doadorEmail: '', campaignId: '' })
-      load()
-    } catch (e: any) { alert(e.message) }
-    finally { setSaving(false) }
-  }
-
   const fmtBRL = (n: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(n)
 
   return (
@@ -98,9 +79,9 @@ export default function DonationsPage() {
           <h1 className="page-title">Doações</h1>
           <p className="text-slate-500 text-sm mt-1">{data?.total ?? '—'} doações registradas</p>
         </div>
-        <button className="btn-primary" onClick={() => setShowModal(true)}>
+        <Link href="/donations/new" className="btn-primary">
           <Plus size={16} /> Registrar Doação
-        </button>
+        </Link>
       </div>
 
       {stats && (
@@ -248,42 +229,6 @@ export default function DonationsPage() {
         </div>
       )}
 
-      <Modal open={showModal} onClose={() => setShowModal(false)} title="Registrar Doação">
-        <form onSubmit={handleCreate} className="space-y-4">
-          <div>
-            <label className="label">Tipo de Doação *</label>
-            <select className="input" value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}>
-              {TIPO_OPTIONS.map(t => <option key={t} value={t}>{TIPO_LABELS[t]}</option>)}
-            </select>
-          </div>
-          {form.tipo === 'MONETARY' && (
-            <div>
-              <label className="label">Valor (R$) *</label>
-              <input className="input" type="number" min="0" step="0.01" required value={form.valor} onChange={e => setForm(f => ({ ...f, valor: e.target.value }))} placeholder="0,00" />
-            </div>
-          )}
-          {form.tipo !== 'MONETARY' && (
-            <div>
-              <label className="label">Descrição *</label>
-              <textarea className="input" rows={2} required value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} placeholder="Descreva a doação..." />
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="label">Nome do Doador</label>
-              <input className="input" value={form.doadorNome} onChange={e => setForm(f => ({ ...f, doadorNome: e.target.value }))} placeholder="Maria Silva" />
-            </div>
-            <div>
-              <label className="label">Email do Doador</label>
-              <input className="input" type="email" value={form.doadorEmail} onChange={e => setForm(f => ({ ...f, doadorEmail: e.target.value }))} />
-            </div>
-          </div>
-          <div className="flex gap-3 pt-2">
-            <button type="button" className="btn-secondary flex-1" onClick={() => setShowModal(false)}>Cancelar</button>
-            <button type="submit" className="btn-primary flex-1" disabled={saving}>{saving ? 'Salvando...' : 'Registrar'}</button>
-          </div>
-        </form>
-      </Modal>
     </div>
   )
 }

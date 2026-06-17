@@ -77,6 +77,13 @@ export default function VolunteerInterestsPage() {
 
   const items: any[] = data?.data || []
 
+  const { activeInterests, inactiveInterests } = useMemo(() => {
+    return {
+      activeInterests: items.filter((item: any) => item.status === 'PENDING' || item.status === 'APPROVED'),
+      inactiveInterests: items.filter((item: any) => item.status === 'REJECTED'),
+    }
+  }, [items])
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -159,105 +166,154 @@ export default function VolunteerInterestsPage() {
           }
         />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {items.map(item => {
-            const s = INTEREST_STATUS_STYLE[item.status] || INTEREST_STATUS_STYLE.PENDING
-            const isPending = item.status === 'PENDING'
-            const busy = actionId === item.id
-            return (
-              <div
-                key={item.id}
-                className="card p-0 overflow-hidden hover:shadow-lg transition-shadow"
-                style={{ borderTop: `4px solid ${s.bar}` }}
-              >
-                <div className="p-5 space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+        <>
+          {activeInterests.length > 0 && (
+            <div>
+              {inactiveInterests.length > 0 && (
+                <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Ativos / Pendentes</h2>
+              )}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {activeInterests.map(item => {
+                  const s = INTEREST_STATUS_STYLE[item.status] || INTEREST_STATUS_STYLE.PENDING
+                  const isPending = item.status === 'PENDING'
+                  const busy = actionId === item.id
+                  return (
+                    <div
+                      key={item.id}
+                      className="card p-0 overflow-hidden hover:shadow-lg transition-shadow"
+                      style={{ borderTop: `4px solid ${s.bar}` }}
+                    >
+                      <div className="p-5 space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
+                                style={{ backgroundColor: s.bg, color: s.text }}
+                              >
+                                {s.label}
+                              </span>
+                              <span className="text-[11px] text-slate-400">#{item.id}</span>
+                            </div>
+                            <h3 className="text-lg font-bold text-slate-900 truncate">{item.nome}</h3>
+                            <p className="text-xs text-slate-500">{fmtDate(item.createdAt)}</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-1.5 text-sm text-slate-700">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Mail size={13} className="text-slate-400 flex-shrink-0" />
+                            <a href={`mailto:${item.email}`} className="text-brand-600 hover:underline truncate">{item.email}</a>
+                          </div>
+                          {item.telefone && (
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Phone size={13} className="text-slate-400 flex-shrink-0" />
+                              <a href={`tel:${item.telefone}`} className="hover:underline truncate">{item.telefone}</a>
+                            </div>
+                          )}
+                          {item.profissao && (
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Briefcase size={13} className="text-slate-400 flex-shrink-0" />
+                              <span className="truncate">{item.profissao}</span>
+                            </div>
+                          )}
+                          {item.campaign && (
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Megaphone size={13} className="text-slate-400 flex-shrink-0" />
+                              <span className="text-slate-600 truncate">Campanha: <strong>{item.campaign.nome}</strong></span>
+                            </div>
+                          )}
+                        </div>
+
+                        {item.mensagem && (
+                          <button
+                            type="button"
+                            onClick={() => setDetail(item)}
+                            className="w-full text-left bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-600 flex items-start gap-2 transition"
+                          >
+                            <MessageSquare size={13} className="flex-shrink-0 mt-0.5 text-slate-500" />
+                            <span className="line-clamp-2">{item.mensagem}</span>
+                          </button>
+                        )}
+
+                        <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
+                          <button
+                            type="button"
+                            onClick={() => setDetail(item)}
+                            className="btn-outline text-xs py-1.5 px-3"
+                          >
+                            Ver detalhes
+                          </button>
+                          {isPending && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => approve(item)}
+                                disabled={busy}
+                                className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
+                              >
+                                {busy ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+                                Aprovar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => { setRejectTarget(item); setRejectReason('') }}
+                                disabled={busy}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 disabled:opacity-60"
+                              >
+                                <X size={13} /> Rejeitar
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {inactiveInterests.length > 0 && (
+            <div className={activeInterests.length > 0 ? 'mt-8' : ''}>
+              {activeInterests.length > 0 && (
+                <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Rejeitados</h2>
+              )}
+              <div className="card divide-y divide-slate-100 overflow-hidden">
+                {inactiveInterests.map(item => {
+                  const s = INTEREST_STATUS_STYLE[item.status] || INTEREST_STATUS_STYLE.PENDING
+                  return (
+                    <div key={item.id} className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <UsersRound size={16} className="text-slate-400 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <span className="text-sm font-semibold text-slate-900 truncate block">{item.nome}</span>
+                          <span className="text-xs text-slate-400 truncate">{item.email}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <span className="text-xs text-slate-400 hidden sm:block">{fmtDate(item.createdAt)}</span>
                         <span
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase whitespace-nowrap"
                           style={{ backgroundColor: s.bg, color: s.text }}
                         >
                           {s.label}
                         </span>
-                        <span className="text-[11px] text-slate-400">#{item.id}</span>
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-900 truncate">{item.nome}</h3>
-                      <p className="text-xs text-slate-500">{fmtDate(item.createdAt)}</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-1.5 text-sm text-slate-700">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Mail size={13} className="text-slate-400 flex-shrink-0" />
-                      <a href={`mailto:${item.email}`} className="text-brand-600 hover:underline truncate">{item.email}</a>
-                    </div>
-                    {item.telefone && (
-                      <div className="flex items-center gap-2 min-w-0">
-                        <Phone size={13} className="text-slate-400 flex-shrink-0" />
-                        <a href={`tel:${item.telefone}`} className="hover:underline truncate">{item.telefone}</a>
-                      </div>
-                    )}
-                    {item.profissao && (
-                      <div className="flex items-center gap-2 min-w-0">
-                        <Briefcase size={13} className="text-slate-400 flex-shrink-0" />
-                        <span className="truncate">{item.profissao}</span>
-                      </div>
-                    )}
-                    {item.campaign && (
-                      <div className="flex items-center gap-2 min-w-0">
-                        <Megaphone size={13} className="text-slate-400 flex-shrink-0" />
-                        <span className="text-slate-600 truncate">Campanha: <strong>{item.campaign.nome}</strong></span>
-                      </div>
-                    )}
-                  </div>
-
-                  {item.mensagem && (
-                    <button
-                      type="button"
-                      onClick={() => setDetail(item)}
-                      className="w-full text-left bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-600 flex items-start gap-2 transition"
-                    >
-                      <MessageSquare size={13} className="flex-shrink-0 mt-0.5 text-slate-500" />
-                      <span className="line-clamp-2">{item.mensagem}</span>
-                    </button>
-                  )}
-
-                  <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
-                    <button
-                      type="button"
-                      onClick={() => setDetail(item)}
-                      className="btn-outline text-xs py-1.5 px-3"
-                    >
-                      Ver detalhes
-                    </button>
-                    {isPending && (
-                      <>
                         <button
                           type="button"
-                          onClick={() => approve(item)}
-                          disabled={busy}
-                          className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
+                          onClick={() => setDetail(item)}
+                          className="text-xs font-semibold text-brand-600 hover:underline flex-shrink-0"
                         >
-                          {busy ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
-                          Aprovar
+                          Detalhes
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => { setRejectTarget(item); setRejectReason('') }}
-                          disabled={busy}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 disabled:opacity-60"
-                        >
-                          <X size={13} /> Rejeitar
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
-            )
-          })}
-        </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Detail modal */}

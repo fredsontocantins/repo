@@ -1,9 +1,9 @@
 'use client'
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { Users, Search, Plus, Filter, Star, Clock, Check, X, Pause, Play, Loader2, AlertCircle } from 'lucide-react'
+import Link from 'next/link'
 import { api } from '@/lib/api'
 import StatusFilterChips from '@/components/ui/StatusFilterChips'
-import Modal from '@/components/ui/Modal'
 import EmptyState from '@/components/ui/EmptyState'
 import { VOLUNTEER_STATUS_STYLE, VOLUNTEER_STATUS_ORDER } from '@/lib/chart-colors'
 
@@ -14,9 +14,6 @@ export default function VolunteersPage() {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
   const [page, setPage] = useState(1)
-  const [showModal, setShowModal] = useState(false)
-  const [form, setForm] = useState({ nome: '', email: '', telefone: '', profissao: '', bio: '' })
-  const [saving, setSaving] = useState(false)
   const [busyId, setBusyId] = useState<number | null>(null)
   const [toast, setToast] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
 
@@ -34,18 +31,6 @@ export default function VolunteersPage() {
   }, [search, status, page])
 
   useEffect(() => { load() }, [load])
-
-  async function handleCreate(e: React.FormEvent) {
-    e.preventDefault()
-    setSaving(true)
-    try {
-      await api.createVolunteer(form)
-      setShowModal(false)
-      setForm({ nome: '', email: '', telefone: '', profissao: '', bio: '' })
-      load()
-    } catch (e: any) { alert(e.message) }
-    finally { setSaving(false) }
-  }
 
   async function changeStatus(v: any, newStatus: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'PENDING', label: string) {
     setBusyId(v.id)
@@ -71,6 +56,14 @@ export default function VolunteersPage() {
     SUSPENDED: stats?.suspended ?? 0,
   }), [stats])
 
+  const { activeVolunteers, inactiveVolunteers } = useMemo(() => {
+    const all = data?.data ?? []
+    return {
+      activeVolunteers: all.filter((v: any) => v.status === 'ACTIVE'),
+      inactiveVolunteers: all.filter((v: any) => v.status !== 'ACTIVE'),
+    }
+  }, [data])
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -79,9 +72,9 @@ export default function VolunteersPage() {
           <h1 className="page-title">Voluntários</h1>
           <p className="text-slate-500 text-sm mt-1">{data?.total ?? '—'} voluntários cadastrados</p>
         </div>
-        <button className="btn-primary" onClick={() => setShowModal(true)}>
+        <Link href="/volunteers/new" className="btn-primary">
           <Plus size={16} /> Novo Voluntário
-        </button>
+        </Link>
       </div>
 
       {/* Stats bar */}
@@ -189,116 +182,164 @@ export default function VolunteersPage() {
       ) : data?.data?.length === 0 ? (
         <EmptyState icon={Users} title="Nenhum voluntário encontrado" description="Tente ajustar os filtros ou adicione um novo voluntário." />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {data?.data?.map((v: any) => {
-            const s = VOLUNTEER_STATUS_STYLE[v.status] ?? VOLUNTEER_STATUS_STYLE.PENDING
-            return (
-              <div
-                key={v.id}
-                className="card p-5 flex flex-col gap-3 transition hover:-translate-y-0.5"
-                style={{ borderTop: `4px solid ${s.bar}` }}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-3 min-w-0">
+        <>
+          {activeVolunteers.length > 0 && (
+            <div>
+              {inactiveVolunteers.length > 0 && (
+                <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Ativos</h2>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {activeVolunteers.map((v: any) => {
+                  const s = VOLUNTEER_STATUS_STYLE[v.status] ?? VOLUNTEER_STATUS_STYLE.PENDING
+                  return (
                     <div
-                      className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
-                      style={{ backgroundColor: s.bar }}
+                      key={v.id}
+                      className="card p-5 flex flex-col gap-3 transition hover:-translate-y-0.5"
+                      style={{ borderTop: `4px solid ${s.bar}` }}
                     >
-                      {v.nome[0].toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-slate-900 text-sm leading-tight truncate">{v.nome}</p>
-                      <p className="text-slate-400 text-xs mt-1 truncate">{v.profissao || 'Sem profissão'}</p>
-                    </div>
-                  </div>
-                  <span
-                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
-                    style={{ backgroundColor: s.bg, color: s.text }}
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.bar }} />
-                    {s.label}
-                  </span>
-                </div>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div
+                            className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+                            style={{ backgroundColor: s.bar }}
+                          >
+                            {v.nome[0].toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-slate-900 text-sm leading-tight truncate">{v.nome}</p>
+                            <p className="text-slate-400 text-xs mt-1 truncate">{v.profissao || 'Sem profissão'}</p>
+                          </div>
+                        </div>
+                        <span
+                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
+                          style={{ backgroundColor: s.bg, color: s.text }}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.bar }} />
+                          {s.label}
+                        </span>
+                      </div>
 
-                {v.email && <p className="text-xs text-slate-400 truncate">{v.email}</p>}
+                      {v.email && <p className="text-xs text-slate-400 truncate">{v.email}</p>}
 
-                <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
-                  <div className="flex items-center gap-1.5 text-xs text-amber-600">
-                    <Star size={12} className="fill-amber-400 text-amber-400" />
-                    <span className="font-semibold">{fmt(v.pontos)}</span>
-                    <span className="text-slate-400">pts</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-blue-600">
-                    <Clock size={12} />
-                    <span className="font-semibold">{v.horasContribuidas}h</span>
-                  </div>
-                  {v.badges?.length > 0 && (
-                    <div className="flex items-center gap-1 ml-auto">
-                      {v.badges.slice(0, 3).map((b: any) => (
-                        <span key={b.id} className="text-sm" title={b.badge.nome}>{b.badge.icone}</span>
-                      ))}
+                      <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
+                        <div className="flex items-center gap-1.5 text-xs text-amber-600">
+                          <Star size={12} className="fill-amber-400 text-amber-400" />
+                          <span className="font-semibold">{fmt(v.pontos)}</span>
+                          <span className="text-slate-400">pts</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-blue-600">
+                          <Clock size={12} />
+                          <span className="font-semibold">{v.horasContribuidas}h</span>
+                        </div>
+                        {v.badges?.length > 0 && (
+                          <div className="flex items-center gap-1 ml-auto">
+                            {v.badges.slice(0, 3).map((b: any) => (
+                              <span key={b.id} className="text-sm" title={b.badge.nome}>{b.badge.icone}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+                        {v.status === 'ACTIVE' && (
+                          <button
+                            type="button"
+                            disabled={busyId === v.id}
+                            onClick={() => {
+                              if (confirm(`Suspender temporariamente ${v.nome}?`)) {
+                                changeStatus(v, 'SUSPENDED', 'suspenso')
+                              }
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-amber-200 text-amber-700 hover:bg-amber-50 disabled:opacity-50 transition-colors"
+                          >
+                            {busyId === v.id ? <Loader2 size={13} className="animate-spin" /> : <Pause size={13} />}
+                            Suspender
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-
-                {/* Status actions */}
-                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
-                  {v.status === 'PENDING' && (
-                    <>
-                      <button
-                        type="button"
-                        disabled={busyId === v.id}
-                        onClick={() => changeStatus(v, 'ACTIVE', 'ativado com sucesso')}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
-                      >
-                        {busyId === v.id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
-                        Ativar
-                      </button>
-                      <button
-                        type="button"
-                        disabled={busyId === v.id}
-                        onClick={() => {
-                          if (confirm(`Rejeitar o cadastro de ${v.nome}?`)) {
-                            changeStatus(v, 'INACTIVE', 'cadastro rejeitado')
-                          }
-                        }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-white border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50 transition-colors"
-                      >
-                        <X size={13} /> Rejeitar
-                      </button>
-                    </>
-                  )}
-                  {v.status === 'ACTIVE' && (
-                    <button
-                      type="button"
-                      disabled={busyId === v.id}
-                      onClick={() => {
-                        if (confirm(`Suspender temporariamente ${v.nome}?`)) {
-                          changeStatus(v, 'SUSPENDED', 'suspenso')
-                        }
-                      }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-amber-200 text-amber-700 hover:bg-amber-50 disabled:opacity-50 transition-colors"
-                    >
-                      {busyId === v.id ? <Loader2 size={13} className="animate-spin" /> : <Pause size={13} />}
-                      Suspender
-                    </button>
-                  )}
-                  {(v.status === 'SUSPENDED' || v.status === 'INACTIVE') && (
-                    <button
-                      type="button"
-                      disabled={busyId === v.id}
-                      onClick={() => changeStatus(v, 'ACTIVE', 'reativado')}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
-                    >
-                      {busyId === v.id ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} />}
-                      Reativar
-                    </button>
-                  )}
-                </div>
+                  )
+                })}
               </div>
-            )
-          })}
-        </div>
+            </div>
+          )}
+
+          {inactiveVolunteers.length > 0 && (
+            <div className={activeVolunteers.length > 0 ? 'mt-8' : ''}>
+              {activeVolunteers.length > 0 && (
+                <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Inativos / Pendentes</h2>
+              )}
+              <div className="card divide-y divide-slate-100 overflow-hidden">
+                {inactiveVolunteers.map((v: any) => {
+                  const s = VOLUNTEER_STATUS_STYLE[v.status] ?? VOLUNTEER_STATUS_STYLE.PENDING
+                  const isPending = v.status === 'PENDING'
+                  return (
+                    <div key={v.id} className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs flex-shrink-0"
+                          style={{ backgroundColor: s.bar }}
+                        >
+                          {v.nome[0].toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-900 truncate">{v.nome}</p>
+                          <p className="text-xs text-slate-400 truncate">{v.email || v.profissao || 'Sem email'}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <span className="text-xs text-slate-400 hidden sm:block">{v.pontos} pts · {v.horasContribuidas}h</span>
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
+                          style={{ backgroundColor: s.bg, color: s.text }}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.bar }} />
+                          {s.label}
+                        </span>
+                        {isPending && (
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              disabled={busyId === v.id}
+                              onClick={() => changeStatus(v, 'ACTIVE', 'ativado com sucesso')}
+                              className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+                            >
+                              {busyId === v.id ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
+                              Ativar
+                            </button>
+                            <button
+                              type="button"
+                              disabled={busyId === v.id}
+                              onClick={() => {
+                                if (confirm(`Rejeitar o cadastro de ${v.nome}?`)) {
+                                  changeStatus(v, 'INACTIVE', 'cadastro rejeitado')
+                                }
+                              }}
+                              className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold rounded-lg bg-white border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                            >
+                              <X size={11} /> Rejeitar
+                            </button>
+                          </div>
+                        )}
+                        {!isPending && (
+                          <button
+                            type="button"
+                            disabled={busyId === v.id}
+                            onClick={() => changeStatus(v, 'ACTIVE', 'reativado')}
+                            className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+                          >
+                            {busyId === v.id ? <Loader2 size={11} className="animate-spin" /> : <Play size={11} />}
+                            Reativar
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Pagination */}
@@ -310,37 +351,6 @@ export default function VolunteersPage() {
         </div>
       )}
 
-      {/* Create Modal */}
-      <Modal open={showModal} onClose={() => setShowModal(false)} title="Novo Voluntário">
-        <form onSubmit={handleCreate} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="label">Nome completo *</label>
-              <input className="input" required value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} placeholder="João da Silva" />
-            </div>
-            <div>
-              <label className="label">Email</label>
-              <input className="input" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="joao@email.com" />
-            </div>
-            <div>
-              <label className="label">Telefone</label>
-              <input className="input" value={form.telefone} onChange={e => setForm(f => ({ ...f, telefone: e.target.value }))} placeholder="(11) 99999-0000" />
-            </div>
-            <div className="col-span-2">
-              <label className="label">Profissão</label>
-              <input className="input" value={form.profissao} onChange={e => setForm(f => ({ ...f, profissao: e.target.value }))} placeholder="Médico, Professor, etc." />
-            </div>
-            <div className="col-span-2">
-              <label className="label">Bio / Observações</label>
-              <textarea className="input" rows={3} value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} placeholder="Sobre o voluntário..." />
-            </div>
-          </div>
-          <div className="flex gap-3 pt-2">
-            <button type="button" className="btn-secondary flex-1" onClick={() => setShowModal(false)}>Cancelar</button>
-            <button type="submit" className="btn-primary flex-1" disabled={saving}>{saving ? 'Salvando...' : 'Criar Voluntário'}</button>
-          </div>
-        </form>
-      </Modal>
     </div>
   )
 }
