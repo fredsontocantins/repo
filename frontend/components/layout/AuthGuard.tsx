@@ -8,6 +8,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, hydrate } = useAuthStore()
   const router = useRouter()
   const [ready, setReady] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
 
   useEffect(() => {
     hydrate()
@@ -15,13 +16,16 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
-    if (ready && !user) {
+    if (ready && !user && !redirecting) {
       const token = localStorage.getItem('token')
-      if (!token) router.replace('/auth/login')
+      if (!token) {
+        setRedirecting(true)
+        router.replace('/auth/login')
+      }
     }
-  }, [ready, user])
+  }, [ready, user, redirecting, router])
 
-  if (!ready || !user) {
+  if (!ready || redirecting) {
     return (
       <div className="min-h-screen flex items-center justify-center"
            style={{ background: 'linear-gradient(135deg,#0a1a30 0%,#112a4a 60%,#193e6b 100%)' }}>
@@ -30,7 +34,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                style={{ background: 'linear-gradient(135deg,#5e8abb,#22518a)' }}>
             <Leaf size={24} className="text-white" />
           </div>
-          <p className="text-brand-200 text-sm">Carregando...</p>
+          <p className="text-brand-200 text-sm">{redirecting ? 'Redirecionando para login...' : 'Carregando...'}</p>
         </div>
       </div>
     )

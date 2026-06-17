@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import {
   LayoutDashboard, Users, Megaphone, Heart, Trophy, FileBarChart,
   Calendar, Settings, LogOut, Leaf, Award, Globe,
-  UsersRound, ChevronRight, Building2, Wallet, Inbox,
+  UsersRound, ChevronRight, Building2, Wallet, Inbox, Lightbulb,
 } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
 import { api } from '@/lib/api'
@@ -20,6 +20,7 @@ type NavItem = {
 
 const gestaoBase: NavItem[] = [
   { href: '/dashboard',            label: 'Dashboard',              icon: LayoutDashboard },
+  { href: '/insights',             label: 'Insights',               icon: Lightbulb },
   { href: '/volunteers',           label: 'Voluntários',            icon: Users },
   { href: '/volunteer-interests',  label: 'Interesses (Portal)',    icon: Inbox },
   { href: '/campaigns',            label: 'Campanhas',              icon: Megaphone },
