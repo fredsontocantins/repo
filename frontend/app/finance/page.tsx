@@ -350,7 +350,15 @@ export default function FinancePage() {
   async function handleSavePay(e: React.FormEvent) {
     e.preventDefault(); setSaving(true)
     try {
-      await api.createPayable({ ...formPay, valor: Number(formPay.valor) })
+      await api.createPayable({
+        descricao: formPay.descricao,
+        valor: Number(formPay.valor),
+        vencimento: formPay.vencimento,
+        categoria: formPay.categoria,
+        fornecedor: formPay.fornecedor || undefined,
+        observacao: formPay.observacao || undefined,
+        notaFiscal: formPay.notaFiscal || undefined,
+      })
       setModal(null); setFormPay({ ...blankPay }); reload()
     } catch (e: any) { alert(e.message) } finally { setSaving(false) }
   }
@@ -358,7 +366,15 @@ export default function FinancePage() {
   async function handleSaveRec(e: React.FormEvent) {
     e.preventDefault(); setSaving(true)
     try {
-      await api.createReceivable({ ...formRec, valor: Number(formRec.valor) })
+      await api.createReceivable({
+        descricao: formRec.descricao,
+        valor: Number(formRec.valor),
+        vencimento: formRec.vencimento,
+        categoria: formRec.categoria,
+        pagador: formRec.pagador || undefined,
+        observacao: formRec.observacao || undefined,
+        emailPagador: formRec.emailPagador || undefined,
+      })
       setModal(null); setFormRec({ ...blankRec }); reload()
     } catch (e: any) { alert(e.message) } finally { setSaving(false) }
   }
