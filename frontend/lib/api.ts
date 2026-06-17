@@ -1,5 +1,5 @@
 // /proxy é reescrito pelo Next.js para o backend interno (ver next.config.js)
-import type { AuthUser, Campaign, LoginResponse, Paginated, Volunteer } from './types'
+import type { AuthUser, Campaign, Certificate, Donation, Event, LoginResponse, Member, Paginated, Volunteer, VolunteerInterest } from './types'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'
 const API_PROXY = process.env.NEXT_PUBLIC_API_PROXY || '/proxy'
@@ -58,6 +58,7 @@ export const api = {
 
   // Users
   getUsers: (p?: Record<string, any>) => request<any>(`/users${qs(p)}`),
+  getUser: (id: number) => request<any>(`/users/${id}`),
   createUser: (data: any) => request<any>('/users', { method: 'POST', body: JSON.stringify(data) }),
   updateUser: (id: number, data: any) => request<any>(`/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deactivateUser: (id: number) => request<any>(`/users/${id}`, { method: 'DELETE' }),
@@ -87,13 +88,17 @@ export const api = {
     request<any>(`/campaigns/${campaignId}/volunteers/${volunteerId}`, { method: 'DELETE' }),
 
   // Donations
-  getDonations: (p?: Record<string, any>) => request<any>(`/donations${qs(p)}`),
+  getDonations: (p?: Record<string, any>) => request<Paginated<Donation>>(`/donations${qs(p)}`),
+  getDonation: (id: number) => request<Donation>(`/donations/${id}`),
   getDonationStats: () => request<any>('/donations/stats'),
   createDonation: (data: any) => request<any>('/donations', { method: 'POST', body: JSON.stringify(data) }),
+  updateDonation: (id: number, data: any) => request<any>(`/donations/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteDonation: (id: number) => request<any>(`/donations/${id}`, { method: 'DELETE' }),
 
   // Events
   getEvents: (p?: Record<string, any>) => request<any>(`/events${qs(p)}`),
   getEvent: (id: number) => request<any>(`/events/${id}`),
+  deleteEvent: (id: number) => request<any>(`/events/${id}`, { method: 'DELETE' }),
   createEvent: (data: any) => request<any>('/events', { method: 'POST', body: JSON.stringify(data) }),
   updateEvent: (id: number, data: any) => request<any>(`/events/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   getEventVolunteers: (eventId: number) => request<any>(`/events/${eventId}/volunteers`),
@@ -112,22 +117,23 @@ export const api = {
     request<any>(`/gamification/check/${volunteerId}`, { method: 'POST' }),
 
   // Certificates
-  getCertificates: (p?: Record<string, any>) => request<any>(`/certificates${qs(p)}`),
-  getCertificate: (id: number) => request<any>(`/certificates/${id}`),
+  getCertificates: (p?: Record<string, any>) => request<Paginated<Certificate>>(`/certificates${qs(p)}`),
+  getCertificate: (id: number) => request<Certificate>(`/certificates/${id}`),
   getCertificateStats: () => request<any>('/certificates/stats'),
-  createCertificate: (data: any) => request<any>('/certificates', { method: 'POST', body: JSON.stringify(data) }),
+  createCertificate: (data: any) => request<Certificate>('/certificates', { method: 'POST', body: JSON.stringify(data) }),
+  deleteCertificate: (id: number) => request<any>(`/certificates/${id}`, { method: 'DELETE' }),
   issueBulkCertificates: (data: any) => request<any>('/certificates/bulk', { method: 'POST', body: JSON.stringify(data) }),
   revokeCertificate: (id: number, motivoRevogacao: string) =>
     request<any>(`/certificates/${id}/revoke`, { method: 'PUT', body: JSON.stringify({ motivoRevogacao }) }),
   verifyCertificate: (codigo: string) => publicRequest<any>(`/certificates/verify/${codigo}`),
 
   // Members
-  getMembers: (p?: Record<string, any>) => request<any>(`/members${qs(p)}`),
-  getMember: (id: number) => request<any>(`/members/${id}`),
+  getMembers: (p?: Record<string, any>) => request<Paginated<Member>>(`/members${qs(p)}`),
+  getMember: (id: number) => request<Member>(`/members/${id}`),
   getMemberStats: () => request<any>('/members/stats'),
-  createMember: (data: any) => request<any>('/members', { method: 'POST', body: JSON.stringify(data) }),
-  updateMember: (id: number, data: any) => request<any>(`/members/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  deactivateMember: (id: number) => request<any>(`/members/${id}`, { method: 'DELETE' }),
+  createMember: (data: any) => request<Member>('/members', { method: 'POST', body: JSON.stringify(data) }),
+  updateMember: (id: number, data: any) => request<Member>(`/members/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteMember: (id: number) => request<any>(`/members/${id}`, { method: 'DELETE' }),
 
   // Reports
   getReports: () => request<any>('/reports'),
@@ -173,6 +179,7 @@ export const api = {
 
   // Campaign interests (admin)
   getCampaignInterests: (params?: Record<string, any>) => request<any>(`/campaign-interests${qs(params)}`),
+  getCampaignInterest: (id: number) => request<any>(`/campaign-interests/${id}`),
   getCampaignInterestStats: () => request<any>('/campaign-interests/stats'),
   approveCampaignInterest: (id: number) => request<any>(`/campaign-interests/${id}/approve`, { method: 'PUT' }),
   rejectCampaignInterest: (id: number, motivo: string) =>

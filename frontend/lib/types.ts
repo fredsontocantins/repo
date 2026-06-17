@@ -62,6 +62,75 @@ export interface Campaign {
   dataFim?: string | null
 }
 
+export interface Donation {
+  id: number
+  doadorNome: string
+  doadorEmail?: string | null
+  tipo: 'MONETARY' | 'MATERIAL' | 'SERVICE'
+  valor?: number | null
+  descricao?: string | null
+  status: DonationStatus
+  dataDoacao?: string | null
+  campaignId?: number | null
+  campaign?: { id: number; nome: string } | null
+  volunteerId?: number | null
+  volunteer?: { id: number; nome: string } | null
+  createdAt: string
+}
+
+export interface Event {
+  id: number
+  nome: string
+  descricao?: string | null
+  local?: string | null
+  dataInicio?: string | null
+  dataFim?: string | null
+  status: string
+  cargaHoraria?: number | null
+  campaignId?: number | null
+  campaign?: { id: number; nome: string } | null
+  _count?: { registrations: number }
+  registrations?: { id: number; volunteerId: number; checkedIn: boolean; volunteer: { id: number; nome: string; email: string } }[]
+  createdAt: string
+}
+
+export interface Member {
+  id: number
+  nome: string
+  email?: string | null
+  telefone?: string | null
+  cargo?: string | null
+  status: string
+  dataEntrada?: string | null
+  createdAt: string
+}
+
+export interface Certificate {
+  id: number
+  titulo: string
+  descricao?: string | null
+  codigoVerificacao: string
+  status: string
+  volunteerId: number
+  volunteer?: { id: number; nome: string } | null
+  eventId?: number | null
+  event?: { id: number; nome: string } | null
+  dataEmissao: string
+  dataRevogacao?: string | null
+  motivoRevogacao?: string | null
+  createdAt: string
+}
+
+export interface VolunteerInterest {
+  id: number
+  nome: string
+  email: string
+  telefone?: string | null
+  mensagem?: string | null
+  status: string
+  createdAt: string
+}
+
 export interface Paginated<T> {
   data: T[]
   total: number
