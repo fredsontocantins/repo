@@ -87,7 +87,7 @@ export default function PortalCampaignsPage({ params }: PortalCampaignsProps) {
       <section className="relative overflow-hidden bg-gradient-to-br from-brand-600 via-brand-500 to-brand-400 text-white">
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
         <div className="relative max-w-6xl mx-auto px-6 py-20 text-center">
-          <p className="text-sm uppercase tracking-[0.5em] text-brand-100 mb-4">Campanhas</p>
+          <p className="text-sm uppercase tracking-[0.5em] text-white/70 mb-4">Campanhas</p>
           <h1 className="text-4xl md:text-5xl font-black leading-tight mb-4">Campanhas abertas para voluntariado</h1>
           <p className="max-w-3xl mx-auto text-white/80">Escolha uma causa, conheça a campanha e manifeste sua vontade de ajudar. Todas as intenções ficam disponíveis para análise dos coordenadores.</p>
           <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-3">

@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { LucideIcon, Users, Megaphone, Heart, Calendar, TrendingUp, Clock, Award, Sparkles, ArrowRight } from 'lucide-react'
+import { LucideIcon, Users, Megaphone, Heart, Calendar, TrendingUp, Clock, Award, Sparkles, ArrowRight, Lightbulb } from 'lucide-react'
 import Link from 'next/link'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
 import StatCard from '@/components/ui/StatCard'
@@ -54,6 +54,9 @@ export default function DashboardPage() {
               </Link>
               <Link href="/portal/voluntarios-unidos" className="btn-outline">
                 Portal público ativo
+              </Link>
+              <Link href="/insights" className="btn-outline flex items-center gap-2">
+                <Lightbulb size={15} /> Insights
               </Link>
             </div>
           </div>
