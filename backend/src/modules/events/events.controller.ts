@@ -54,6 +54,12 @@ export class EventsController {
     return this.eventsService.checkin(id, body.volunteerId, user.orgId!)
   }
 
+  @Delete(':id')
+  @Roles(UserRole.COORDINATOR, UserRole.ADMIN)
+  remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser) {
+    return this.eventsService.remove(id, user.orgId!)
+  }
+
   @Delete(':id/volunteers/:volunteerId')
   @Roles(UserRole.COORDINATOR, UserRole.ADMIN)
   unregisterVolunteer(

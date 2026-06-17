@@ -54,6 +54,11 @@ export class DonationsService {
     return this.prisma.donation.update({ where: { id }, data, include: { campaign: true } })
   }
 
+  async remove(id: number, orgId: number) {
+    await this.findOne(id, orgId)
+    return this.prisma.donation.delete({ where: { id } })
+  }
+
   async getStats(orgId: number) {
     const [total, totalMonetario, byTipo, recentDonors, monthlyTrend] = await Promise.all([
       this.prisma.donation.count({ where: { organizationId: orgId } }),

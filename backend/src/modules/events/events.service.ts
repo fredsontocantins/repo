@@ -48,6 +48,11 @@ export class EventsService {
     return this.prisma.event.update({ where: { id }, data })
   }
 
+  async remove(id: number, orgId: number) {
+    await this.findOne(id, orgId)
+    return this.prisma.event.delete({ where: { id } })
+  }
+
   async register(eventId: number, volunteerId: number, orgId: number) {
     await this.findOne(eventId, orgId)
     return this.prisma.eventRegistration.upsert({

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, ParseIntPipe } from '@nestjs/common'
+import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, ParseIntPipe, Delete } from '@nestjs/common'
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger'
 import { DonationsService } from './donations.service'
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard'
@@ -46,5 +46,11 @@ export class DonationsController {
   @Roles(UserRole.COORDINATOR, UserRole.ADMIN)
   update(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser, @Body() body: UpdateDonationDto) {
     return this.donationsService.update(id, user.orgId!, body)
+  }
+
+  @Delete(':id')
+  @Roles(UserRole.COORDINATOR, UserRole.ADMIN)
+  remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: AuthenticatedUser) {
+    return this.donationsService.remove(id, user.orgId!)
   }
 }
