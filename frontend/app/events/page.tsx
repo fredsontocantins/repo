@@ -2,10 +2,10 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { Calendar, Plus, MapPin, Users, Clock, UserPlus, Trash2, Sparkles, ArrowRight } from 'lucide-react'
+import Modal from '@/components/ui/Modal'
 import { api } from '@/lib/api'
 import StatusBadge from '@/components/ui/StatusBadge'
 import StatusFilterChips from '@/components/ui/StatusFilterChips'
-import Modal from '@/components/ui/Modal'
 import EmptyState from '@/components/ui/EmptyState'
 import { EVENT_STATUS_STYLE, EVENT_STATUS_ORDER } from '@/lib/chart-colors'
 
@@ -13,9 +13,6 @@ export default function EventsPage() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState('')
-  const [showModal, setShowModal] = useState(false)
-  const [form, setForm] = useState({ nome: '', descricao: '', local: '', dataInicio: '', dataFim: '', capacidade: '' })
-  const [saving, setSaving] = useState(false)
   const [eventAssignment, setEventAssignment] = useState<any>(null)
   const [eventAssignedVolunteers, setEventAssignedVolunteers] = useState<any[]>([])
   const [eventVolunteerOptions, setEventVolunteerOptions] = useState<any[]>([])
@@ -101,22 +98,6 @@ export default function EventsPage() {
     }
   }
 
-  async function handleCreate(e: React.FormEvent) {
-    e.preventDefault()
-    setSaving(true)
-    try {
-      await api.createEvent({
-        ...form,
-        capacidade: form.capacidade ? Number(form.capacidade) : undefined,
-        dataInicio: form.dataInicio,
-        dataFim: form.dataFim || undefined,
-      })
-      setShowModal(false)
-      load()
-    } catch (err: any) { alert(err.message) }
-    finally { setSaving(false) }
-  }
-
   const eventCandidateVolunteers = eventVolunteerOptions.filter(vol => !eventAssignedVolunteers.some(av => av.volunteer?.id === vol.id))
 
   const countsByStatus = useMemo(() => {
@@ -132,6 +113,14 @@ export default function EventsPage() {
     return (data?.data ?? []).filter((ev: any) => ev.status === status)
   }, [data, status])
 
+  const { activeEvents, inactiveEvents } = useMemo(() => {
+    const all = filteredEvents
+    return {
+      activeEvents: all.filter((ev: any) => ev.status === 'SCHEDULED' || ev.status === 'ONGOING'),
+      inactiveEvents: all.filter((ev: any) => ev.status !== 'SCHEDULED' && ev.status !== 'ONGOING'),
+    }
+  }, [filteredEvents])
+
   return (
     <div className="space-y-6">
       <div className="card hero-card p-8 relative overflow-hidden">
@@ -143,9 +132,9 @@ export default function EventsPage() {
             <p className="text-sm text-muted mt-1">{data?.total ?? '—'} eventos gerenciados com CTA direto para voluntários e campanhas.</p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <button className="btn-primary" onClick={() => setShowModal(true)}>
+            <Link href="/events/new" className="btn-primary">
               <Plus size={16} /> Novo Evento
-            </button>
+            </Link>
             <button className="btn-outline">
               <Sparkles size={16} /> Insights
             </button>
@@ -176,67 +165,118 @@ export default function EventsPage() {
           description={status ? 'Tente outro filtro ou crie um novo evento.' : 'Crie o primeiro evento da organização.'}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredEvents.map((ev: any) => {
-            const s = EVENT_STATUS_STYLE[ev.status] ?? EVENT_STATUS_STYLE.SCHEDULED
-            return (
-              <div
-                key={ev.id}
-                className="card relative overflow-hidden group transition hover:-translate-y-0.5"
-                style={{ borderTop: `4px solid ${s.bar}` }}
-              >
-                <div
-                  className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-40 pointer-events-none"
-                  style={{ backgroundColor: s.bg }}
-                />
-                <div className="relative p-5 space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Calendar size={18} style={{ color: s.bar }} />
-                      <h3 className="text-base font-semibold text-slate-900 truncate">{ev.nome}</h3>
+        <>
+          {activeEvents.length > 0 && (
+            <div>
+              {inactiveEvents.length > 0 && (
+                <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Ativos</h2>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {activeEvents.map((ev: any) => {
+                  const s = EVENT_STATUS_STYLE[ev.status] ?? EVENT_STATUS_STYLE.SCHEDULED
+                  return (
+                    <div
+                      key={ev.id}
+                      className="card relative overflow-hidden group transition hover:-translate-y-0.5"
+                      style={{ borderTop: `4px solid ${s.bar}` }}
+                    >
+                      <div
+                        className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl opacity-40 pointer-events-none"
+                        style={{ backgroundColor: s.bg }}
+                      />
+                      <div className="relative p-5 space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Calendar size={18} style={{ color: s.bar }} />
+                            <h3 className="text-base font-semibold text-slate-900 truncate">{ev.nome}</h3>
+                          </div>
+                          <span
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap"
+                            style={{ backgroundColor: s.bg, color: s.text }}
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.bar }} />
+                            {s.label}
+                          </span>
+                        </div>
+                        {ev.descricao && <p className="text-sm text-slate-500 line-clamp-2">{ev.descricao}</p>}
+                        <div className="space-y-1.5 text-xs text-slate-600">
+                          {ev.local && (
+                            <div className="flex items-center gap-2"><MapPin size={12} className="text-slate-400" /><span>{ev.local}</span></div>
+                          )}
+                          <div className="flex items-center gap-2"><Clock size={12} className="text-slate-400" /><span>{new Date(ev.dataInicio).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}</span></div>
+                          {ev.capacidade && (
+                            <div className="flex items-center gap-2"><Users size={12} className="text-slate-400" /><span>{ev._count?.registrations ?? 0}/{ev.capacidade} inscritos</span></div>
+                          )}
+                        </div>
+                        {ev.campaign && (
+                          <div className="text-xs" style={{ color: s.bar }}>Campanha: {ev.campaign.nome}</div>
+                        )}
+                        <div className="flex items-center gap-2 pt-3 border-t border-slate-100 text-xs">
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition-colors"
+                            onClick={() => openEventAssignmentModal(ev)}
+                          >
+                            <UserPlus size={14} /> Inscrever voluntário
+                          </button>
+                          <Link
+                            href={`/events/${ev.id}`}
+                            className="ml-auto inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors"
+                            style={{ color: s.bar }}
+                          >
+                            Detalhes <ArrowRight size={14} />
+                          </Link>
+                        </div>
+                      </div>
                     </div>
-                    <span
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap"
-                      style={{ backgroundColor: s.bg, color: s.text }}
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.bar }} />
-                      {s.label}
-                    </span>
-                  </div>
-                  {ev.descricao && <p className="text-sm text-slate-500 line-clamp-2">{ev.descricao}</p>}
-                  <div className="space-y-1.5 text-xs text-slate-600">
-                    {ev.local && (
-                      <div className="flex items-center gap-2"><MapPin size={12} className="text-slate-400" /><span>{ev.local}</span></div>
-                    )}
-                    <div className="flex items-center gap-2"><Clock size={12} className="text-slate-400" /><span>{new Date(ev.dataInicio).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}</span></div>
-                    {ev.capacidade && (
-                      <div className="flex items-center gap-2"><Users size={12} className="text-slate-400" /><span>{ev._count?.registrations ?? 0}/{ev.capacidade} inscritos</span></div>
-                    )}
-                  </div>
-                  {ev.campaign && (
-                    <div className="text-xs" style={{ color: s.bar }}>Campanha: {ev.campaign.nome}</div>
-                  )}
-                  <div className="flex items-center gap-2 pt-3 border-t border-slate-100 text-xs">
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition-colors"
-                      onClick={() => openEventAssignmentModal(ev)}
-                    >
-                      <UserPlus size={14} /> Inscrever voluntário
-                    </button>
-                    <Link
-                      href={`/events/${ev.id}`}
-                      className="ml-auto inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors"
-                      style={{ color: s.bar }}
-                    >
-                      Detalhes <ArrowRight size={14} />
-                    </Link>
-                  </div>
-                </div>
+                  )
+                })}
               </div>
-            )
-          })}
-        </div>
+            </div>
+          )}
+
+          {inactiveEvents.length > 0 && (
+            <div className={activeEvents.length > 0 ? 'mt-8' : ''}>
+              {activeEvents.length > 0 && (
+                <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Inativos</h2>
+              )}
+              <div className="card divide-y divide-slate-100 overflow-hidden">
+                {inactiveEvents.map((ev: any) => {
+                  const s = EVENT_STATUS_STYLE[ev.status] ?? EVENT_STATUS_STYLE.SCHEDULED
+                  return (
+                    <div key={ev.id} className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <Calendar size={16} className="text-slate-400 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <Link href={`/events/${ev.id}`} className="text-sm font-semibold text-slate-900 hover:text-brand-600 truncate block">
+                            {ev.nome}
+                          </Link>
+                          <p className="text-xs text-slate-400 truncate">{ev.descricao || ev.local || 'Sem descrição'}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 flex-shrink-0">
+                        <span className="text-xs text-slate-400 hidden sm:block">{new Date(ev.dataInicio).toLocaleDateString('pt-BR')}</span>
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold whitespace-nowrap"
+                          style={{ backgroundColor: s.bg, color: s.text }}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.bar }} />
+                          {s.label}
+                        </span>
+                        <Link
+                          href={`/events/${ev.id}`}
+                          className="text-xs font-semibold text-brand-600 hover:underline flex-shrink-0"
+                        >
+                          Detalhes <ArrowRight size={12} className="inline" />
+                        </Link>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       <Modal open={Boolean(eventAssignment)} onClose={closeEventAssignmentModal} title={`Gerenciar voluntários · ${eventAssignment?.nome || ''}`} size="lg">
@@ -310,40 +350,6 @@ export default function EventsPage() {
         )}
       </Modal>
 
-      <Modal open={showModal} onClose={() => setShowModal(false)} title="Novo Evento" size="lg">
-        <form onSubmit={handleCreate} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="label">Nome do evento *</label>
-              <input className="input" required value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} placeholder="Ex: Mutirão de Limpeza" />
-            </div>
-            <div className="col-span-2">
-              <label className="label">Descrição</label>
-              <textarea className="input" rows={2} value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} />
-            </div>
-            <div className="col-span-2">
-              <label className="label">Local</label>
-              <input className="input" value={form.local} onChange={e => setForm(f => ({ ...f, local: e.target.value }))} placeholder="Endereço ou nome do local" />
-            </div>
-            <div>
-              <label className="label">Data de Início *</label>
-              <input className="input" type="datetime-local" required value={form.dataInicio} onChange={e => setForm(f => ({ ...f, dataInicio: e.target.value }))} />
-            </div>
-            <div>
-              <label className="label">Data de Fim</label>
-              <input className="input" type="datetime-local" value={form.dataFim} onChange={e => setForm(f => ({ ...f, dataFim: e.target.value }))} />
-            </div>
-            <div>
-              <label className="label">Capacidade</label>
-              <input className="input" type="number" value={form.capacidade} onChange={e => setForm(f => ({ ...f, capacidade: e.target.value }))} placeholder="50" />
-            </div>
-          </div>
-          <div className="flex gap-3 pt-2">
-            <button type="button" className="btn-secondary flex-1" onClick={() => setShowModal(false)}>Cancelar</button>
-            <button type="submit" className="btn-primary flex-1" disabled={saving}>{saving ? 'Salvando...' : 'Criar Evento'}</button>
-          </div>
-        </form>
-      </Modal>
     </div>
   )
 }
