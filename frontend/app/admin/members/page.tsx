@@ -71,7 +71,7 @@ export default function MembersPage() {
   async function handleDeactivate() {
     if (!confirmDeactivate) return
     try {
-      await api.deactivateMember(confirmDeactivate.id)
+      await api.deleteMember(confirmDeactivate.id)
       setConfirmDeactivate(null)
       load()
     } catch (e: any) { alert(e.message) }
