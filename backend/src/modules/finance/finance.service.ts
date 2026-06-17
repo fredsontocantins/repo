@@ -333,13 +333,21 @@ export class FinanceService {
   }
 
   async createPayable(orgId: number, data: any) {
-    return this.prisma.payable.create({ data: { ...data, organizationId: orgId } })
+    return this.prisma.payable.create({
+      data: {
+        ...data,
+        vencimento: new Date(data.vencimento),
+        organizationId: orgId,
+      },
+    })
   }
 
   async updatePayable(id: number, orgId: number, data: any) {
     const rec = await this.prisma.payable.findFirst({ where: { id, organizationId: orgId } })
     if (!rec) throw new NotFoundException('Conta a pagar não encontrada')
-    return this.prisma.payable.update({ where: { id }, data })
+    const patch = { ...data }
+    if (patch.vencimento) patch.vencimento = new Date(patch.vencimento)
+    return this.prisma.payable.update({ where: { id }, data: patch })
   }
 
   /** Liquidar (marcar como PAGO) */
@@ -416,7 +424,11 @@ export class FinanceService {
 
   async createReceivable(orgId: number, data: any) {
     return this.prisma.receivable.create({
-      data: { ...data, organizationId: orgId },
+      data: {
+        ...data,
+        vencimento: new Date(data.vencimento),
+        organizationId: orgId,
+      },
       include: { campaign: { select: { id: true, nome: true } } },
     })
   }
@@ -424,7 +436,9 @@ export class FinanceService {
   async updateReceivable(id: number, orgId: number, data: any) {
     const rec = await this.prisma.receivable.findFirst({ where: { id, organizationId: orgId } })
     if (!rec) throw new NotFoundException('Conta a receber não encontrada')
-    return this.prisma.receivable.update({ where: { id }, data })
+    const patch = { ...data }
+    if (patch.vencimento) patch.vencimento = new Date(patch.vencimento)
+    return this.prisma.receivable.update({ where: { id }, data: patch })
   }
 
   /** Liquidar (marcar como RECEBIDO) */

@@ -34,7 +34,10 @@ export class CreatePayableDto {
   fornecedor?: string
 
   @IsOptional() @IsString() @MaxLength(2000)
-  observacoes?: string
+  observacao?: string
+
+  @IsOptional() @IsString() @MaxLength(200)
+  notaFiscal?: string
 
   @IsOptional() @IsEnum(PayableStatus)
   status?: PayableStatus
@@ -97,7 +100,13 @@ export class CreateReceivableDto {
   pagador?: string
 
   @IsOptional() @IsString() @MaxLength(2000)
-  observacoes?: string
+  observacao?: string
+
+  @IsOptional() @IsString() @MaxLength(200)
+  emailPagador?: string
+
+  @IsOptional() @IsString() @MaxLength(200)
+  notaFiscal?: string
 
   @IsOptional() @IsEnum(ReceivableStatus)
   status?: ReceivableStatus
